@@ -6,11 +6,19 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <UseWPF>true</UseWPF>
+    <Platforms>AnyCPU;x86;x64</Platforms>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.0" />
     <PackageReference Include="HandyControl" Version="3.6.0-rc2" />
+    <PackageReference Include="Microsoft-WindowsAPICodePack-Core" Version="1.1.5" />
+    <PackageReference Include="Microsoft-WindowsAPICodePack-Shell" Version="1.1.5" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="ViewModels\" />
   </ItemGroup>
 
 </Project>

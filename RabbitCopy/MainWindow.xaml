@@ -4,8 +4,10 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:hc="https://handyorg.github.io/handycontrol"
+        xmlns:viewModels="clr-namespace:RabbitCopy.ViewModels"
         mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="800">
+        d:DataContext="{d:DesignInstance Type=viewModels:MainWindowViewModel, IsDesignTimeCreatable=True}"
+        Title="RabbitCopy" Height="450" Width="800">
     <Grid>
         <ScrollViewer>
             <StackPanel HorizontalAlignment="Stretch">
@@ -19,7 +21,7 @@
                         <RowDefinition Height="Auto" />
                     </Grid.RowDefinitions>
 
-                    <Button Grid.Row="0" Grid.Column="0" Content="Src" />
+                    <Button Grid.Row="0" Grid.Column="0" Content="Src" Command="{Binding SelectSourcesCommand}"/>
                     <TextBox Grid.Row="0" Grid.Column="1"
                              Style="{StaticResource TextBoxExtend}"
                              hc:InfoElement.Title="Source"
