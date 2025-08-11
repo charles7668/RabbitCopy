@@ -3,10 +3,57 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:local="clr-namespace:RabbitCopy"
+        xmlns:hc="https://handyorg.github.io/handycontrol"
         mc:Ignorable="d"
         Title="MainWindow" Height="450" Width="800">
     <Grid>
+        <ScrollViewer>
+            <StackPanel HorizontalAlignment="Stretch">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="60" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
 
+                    <Button Grid.Row="0" Grid.Column="0" Content="Src" />
+                    <TextBox Grid.Row="0" Grid.Column="1"
+                             Style="{StaticResource TextBoxExtend}"
+                             hc:InfoElement.Title="Source"
+                             VerticalAlignment="Center"
+                             AcceptsReturn="True"
+                             AcceptsTab="True"
+                             TextWrapping="Wrap"
+                             VerticalScrollBarVisibility="Auto"
+                             HorizontalScrollBarVisibility="Auto"
+                             MaxHeight="200" />
+
+                    <Button Grid.Row="1" Grid.Column="0" Content="Dest" />
+                    <TextBox Grid.Row="1" Grid.Column="1"
+                             Style="{StaticResource TextBoxExtend}"
+                             hc:InfoElement.Title="Destination"
+                             VerticalAlignment="Center" />
+                </Grid>
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="300" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <hc:TextBox Height="200" IsReadOnly="True" />
+                    <Grid Grid.Column="1">
+                        <Border Padding="10">
+                            <hc:SimpleStackPanel HorizontalAlignment="Stretch">
+                                <hc:SimpleStackPanel Orientation="Horizontal">
+                                    <Button>Execute</Button>
+                                </hc:SimpleStackPanel>
+                            </hc:SimpleStackPanel>
+                        </Border>
+                    </Grid>
+                </Grid>
+            </StackPanel>
+        </ScrollViewer>
     </Grid>
 </Window>
