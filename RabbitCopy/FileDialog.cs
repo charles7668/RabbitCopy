@@ -1,9 +1,4 @@
-﻿using Microsoft.WindowsAPICodePack.Shell;
-using Microsoft.WindowsAPICodePack.Shell.PropertySystem;
-using MS.WindowsAPICodePack.Internal;
-using System;
-using System.ComponentModel;
-using System.Runtime.CompilerServices;
+﻿using MS.WindowsAPICodePack.Internal;
 using System.Runtime.InteropServices;
 using System.Runtime.InteropServices.ComTypes;
 using System.Security;
@@ -766,7 +761,15 @@ public class FolderChangingEventArgs : EventArgs
     }
 }
 
-public class FileOpenDialog
+[Flags]
+public enum FileDialogFlag
+{
+    NORMAL = 0b0,
+    PICK_FOLDER = 0b1,
+    MULTI_SELECT = 0b10,
+}
+
+public partial class FileOpenDialog(FileDialogFlag fileDialogFlag)
 {
     private IntPtr _hSel = IntPtr.Zero;
     private IntPtr _hOk = IntPtr.Zero;
@@ -819,7 +822,7 @@ public class FileOpenDialog
         public Func<IFileDialog, HResult>? OnSelectionChangeEvent { get; set; }
         public Func<IFileDialog, IShellItem, HResult>? OnFolderChangingEvent { get; set; }
 
-        private bool once = true;
+        private bool _once = true;
         private const uint ID_SELECT = 601;
 
         public HResult OnFileOk(IFileDialog pfd)
@@ -834,7 +837,7 @@ public class FileOpenDialog
 
         public HResult OnFolderChanging(IFileDialog pfd, IShellItem psiFolder)
         {
-            if (once)
+            if (_once)
             {
                 if (pfd is IOleWindow pWindow)
                 {
@@ -870,7 +873,7 @@ public class FileOpenDialog
                     }
                 }
 
-                once = false;
+                _once = false;
             }
 
             if (OnFolderChangingEvent != null)
@@ -938,19 +941,22 @@ public class FileOpenDialog
                 if (hr == 0 && folderView2Ptr != IntPtr.Zero)
                 {
                     IFolderView2 fv2 = (IFolderView2)Marshal.GetObjectForIUnknown(folderView2Ptr);
-                    fv2.GetSelectionMarkedItem(out var picnt);
-                    fv2.ItemCount(0, out var cont);
-                    Guid IID_IShellFolder = new Guid("000214E6-0000-0000-C000-000000000046");
-                    Guid IID_IShellItem = new Guid("43826D1E-E718-42EE-BC55-A1E261C37BFE");
                     var IID_IShellItemArrayGuid = new Guid("b63ea76d-1f85-456f-a19c-48159efa858b");
-                    fv2.Items(SVGIO.SVGIO_SELECTION, ref IID_IShellItemArrayGuid, out var shobj);
-                    IShellItemArray shellItemArray = (IShellItemArray)shobj;
-                    shellItemArray.GetCount(out var cnt);
-                    for (int i = 0; i < cnt; i++)
+                    try
                     {
-                        shellItemArray.GetItemAt((uint)i, out var item);
-                        item.GetDisplayName(SIGDN.FILESYSPATH, out StringBuilder path);
-                        parentDialog.SelectedTargets.Add(path.ToString());
+                        fv2.Items(SVGIO.SVGIO_SELECTION, ref IID_IShellItemArrayGuid, out var shellItemArrObj);
+                        IShellItemArray shellItemArray = (IShellItemArray)shellItemArrObj;
+                        shellItemArray.GetCount(out var cnt);
+                        for (int i = 0; i < cnt; i++)
+                        {
+                            shellItemArray.GetItemAt((uint)i, out var item);
+                            item.GetDisplayName(SIGDN.FILESYSPATH, out StringBuilder path);
+                            parentDialog.SelectedTargets.Add(path.ToString());
+                        }
+                    }
+                    catch
+                    {
+                        // ignore
                     }
                 }
 
@@ -989,7 +995,7 @@ public class FileOpenDialog
         return IntPtr.Size == 8 ? SetWindowLongPtr(hWnd, nIndex, newProc) : SetWindowLong(hWnd, nIndex, newProc);
     }
 
-    public void ShowDialog()
+    public bool ShowDialog()
     {
         SelectedTargets.Clear();
 
@@ -1026,23 +1032,36 @@ public class FileOpenDialog
         IFileDialogCustomize customize = (IFileDialogCustomize)comObject;
         customize.AddPushButton(601, "Select");
         IFileDialog pDialog = (IFileOpenDialog)comObject;
-        FILEOPENDIALOGOPTIONS options;
-        pDialog.GetOptions(out options);
+        pDialog.GetOptions(out var options);
         options = options |
                   FILEOPENDIALOGOPTIONS.FOS_FORCEFILESYSTEM |
                   FILEOPENDIALOGOPTIONS.FOS_FILEMUSTEXIST |
-                  FILEOPENDIALOGOPTIONS.FOS_ALLOWMULTISELECT;
+                  (fileDialogFlag.HasFlag(FileDialogFlag.PICK_FOLDER) ? FILEOPENDIALOGOPTIONS.FOS_PICKFOLDERS : 0) |
+                  (fileDialogFlag.HasFlag(FileDialogFlag.MULTI_SELECT)
+                      ? FILEOPENDIALOGOPTIONS.FOS_ALLOWMULTISELECT
+                      : 0);
         pDialog.SetOptions(options);
         pDialog.Advise(eventsHandler, out var adviseCookie);
 
         try
         {
-            pDialog.Show(IntPtr.Zero);
+            var res = pDialog.Show(IntPtr.Zero);
+            if (res == HResult.Ok)
+            {
+                if (SelectedTargets.Count != 0)
+                    return true;
+                pDialog.GetFolder(out var folderShellItem);
+                folderShellItem.GetDisplayName(SIGDN.FILESYSPATH, out var folderPath);
+                SelectedTargets.Add(folderPath.ToString());
+                return true;
+            }
         }
         finally
         {
             pDialog.Unadvise(adviseCookie);
         }
+
+        return false;
     }
 }
 

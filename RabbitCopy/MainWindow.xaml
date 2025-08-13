@@ -24,6 +24,7 @@
                     <Button Grid.Row="0" Grid.Column="0" Content="Src" Command="{Binding SelectSourcesCommand}"/>
                     <TextBox Grid.Row="0" Grid.Column="1"
                              Style="{StaticResource TextBoxExtend}"
+                             Text="{Binding SrcText}"
                              hc:InfoElement.Title="Source"
                              VerticalAlignment="Center"
                              AcceptsReturn="True"
@@ -33,10 +34,12 @@
                              HorizontalScrollBarVisibility="Auto"
                              MaxHeight="200" />
 
-                    <Button Grid.Row="1" Grid.Column="0" Content="Dest" />
+                    <Button Grid.Row="1" Grid.Column="0" Content="Dest" 
+                            Command="{Binding SelectDestDirCommand}"/>
                     <TextBox Grid.Row="1" Grid.Column="1"
                              Style="{StaticResource TextBoxExtend}"
                              hc:InfoElement.Title="Destination"
+                             Text="{Binding DestText}"
                              VerticalAlignment="Center" />
                 </Grid>
                 <Grid>
