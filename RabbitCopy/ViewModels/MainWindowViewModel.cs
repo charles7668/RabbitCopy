@@ -1,8 +1,8 @@
-﻿using System.Diagnostics;
-using System.IO;
+﻿using System.IO;
 using System.Windows;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using RabbitCopy.RoboCopyModule;
 using MessageBox = HandyControl.Controls.MessageBox;
 
 namespace RabbitCopy.ViewModels;
@@ -18,13 +18,16 @@ public partial class MainWindowViewModel : ObservableObject
     [ObservableProperty]
     private string _srcText = string.Empty;
 
+    [ObservableProperty]
+    private bool _excludeSubDirsOption;
+
     [RelayCommand]
-    private Task ExecuteCopy()
+    private async Task ExecuteCopy()
     {
         if (string.IsNullOrWhiteSpace(SrcText) || string.IsNullOrWhiteSpace(DestText))
         {
             MessageBox.Show("Please select sources and destination", "Error", icon: MessageBoxImage.Error);
-            return Task.CompletedTask;
+            return;
         }
 
         var srcList = SrcText.Replace("\r", "").Split('\n').ToList();
@@ -56,7 +59,7 @@ public partial class MainWindowViewModel : ObservableObject
         catch (Exception e)
         {
             MessageBox.Show(e.Message, "Error", icon: MessageBoxImage.Error);
-            return Task.CompletedTask;
+            return;
         }
 
         var needCreate = false;
@@ -75,7 +78,7 @@ public partial class MainWindowViewModel : ObservableObject
             else
             {
                 MessageBox.Show(e.Message, "Error", icon: MessageBoxImage.Error);
-                return Task.CompletedTask;
+                return;
             }
         }
 
@@ -84,74 +87,26 @@ public partial class MainWindowViewModel : ObservableObject
 
         CopyLog = string.Empty;
 
+        var roboCopy = new RoboCopy(
+            output => CopyLog += $"{output}\n",
+            error => CopyLog += $"Error : {error}\n"
+        );
+
         var destDir = DestText.TrimEnd('\\');
 
         foreach (var dirCopy in dirCopyList)
         {
-            ProcessStartInfo startInfo = new()
-            {
-                FileName = "robocopy",
-                Arguments = $"\"{dirCopy}\" \"{destDir}\" *.*",
-                RedirectStandardOutput = true,
-                RedirectStandardError = true,
-                UseShellExecute = false,
-                CreateNoWindow = true
-            };
-            var proc = new Process
-            {
-                StartInfo = startInfo
-            };
-            proc.OutputDataReceived += (_, args) =>
-            {
-                if (!string.IsNullOrWhiteSpace(args.Data))
-                    CopyLog += $"{args.Data}\n";
-            };
-            proc.ErrorDataReceived += (_, args) =>
-            {
-                if (!string.IsNullOrWhiteSpace(args.Data))
-                    CopyLog += $"Error : {args.Data}\n";
-            };
-            proc.Start();
-            proc.BeginOutputReadLine();
-            proc.BeginErrorReadLine();
-            proc.WaitForExit();
+            var options = new RoboCopyOptionsBuilder().WithSubDirs(!ExcludeSubDirsOption).Build();
+            await roboCopy.StartCopy(dirCopy, destDir, ["*.*"], options);
         }
 
         foreach (var group in srcGroup)
         {
             var dirPath = group.Key;
             var fileList = group.Value;
-            var fileArgs = string.Join(" ", fileList.Select(f => $"\"{f}\""));
-            ProcessStartInfo startInfo = new()
-            {
-                FileName = "robocopy",
-                Arguments = $"\"{dirPath}\" \"{destDir}\" {fileArgs}",
-                RedirectStandardOutput = true,
-                RedirectStandardError = true,
-                UseShellExecute = false,
-                CreateNoWindow = true
-            };
-            var proc = new Process
-            {
-                StartInfo = startInfo
-            };
-            proc.OutputDataReceived += (_, args) =>
-            {
-                if (!string.IsNullOrWhiteSpace(args.Data))
-                    CopyLog += $"{args.Data}\n";
-            };
-            proc.ErrorDataReceived += (_, args) =>
-            {
-                if (!string.IsNullOrWhiteSpace(args.Data))
-                    CopyLog += $"Error : {args.Data}\n";
-            };
-            proc.Start();
-            proc.BeginOutputReadLine();
-            proc.BeginErrorReadLine();
-            proc.WaitForExit();
+            var options = new RoboCopyOptionsBuilder().Build();
+            await roboCopy.StartCopy(dirPath, destDir, fileList, options);
         }
-
-        return Task.CompletedTask;
     }
 
     [RelayCommand]

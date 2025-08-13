@@ -21,7 +21,7 @@
                         <RowDefinition Height="Auto" />
                     </Grid.RowDefinitions>
 
-                    <Button Grid.Row="0" Grid.Column="0" Content="Src" Command="{Binding SelectSourcesCommand}"/>
+                    <Button Grid.Row="0" Grid.Column="0" Content="Src" Command="{Binding SelectSourcesCommand}" />
                     <TextBox Grid.Row="0" Grid.Column="1"
                              Style="{StaticResource TextBoxExtend}"
                              Text="{Binding SrcText}"
@@ -34,8 +34,8 @@
                              HorizontalScrollBarVisibility="Auto"
                              MaxHeight="200" />
 
-                    <Button Grid.Row="1" Grid.Column="0" Content="Dest" 
-                            Command="{Binding SelectDestDirCommand}"/>
+                    <Button Grid.Row="1" Grid.Column="0" Content="Dest"
+                            Command="{Binding SelectDestDirCommand}" />
                     <TextBox Grid.Row="1" Grid.Column="1"
                              Style="{StaticResource TextBoxExtend}"
                              hc:InfoElement.Title="Destination"
@@ -53,7 +53,10 @@
                     <Grid Grid.Column="1">
                         <Border Padding="10">
                             <hc:SimpleStackPanel HorizontalAlignment="Stretch">
-                                <hc:SimpleStackPanel Orientation="Horizontal">
+                                <CheckBox HorizontalAlignment="Left" IsChecked="{Binding ExcludeSubDirsOption}">
+                                    Exclude Sub Directories
+                                </CheckBox>
+                                <hc:SimpleStackPanel Orientation="Horizontal" Margin="0,10,0,0">
                                     <Button Command="{Binding ExecuteCopyCommand}">Execute</Button>
                                 </hc:SimpleStackPanel>
                             </hc:SimpleStackPanel>
