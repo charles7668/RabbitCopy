@@ -168,6 +168,7 @@ public static class FileDialog
         [PreserveSig]
         HResult GetParent(out IShellItem ppsi);
 
+        [PreserveSig]
         HResult GetDisplayName(SIGDN sigdnName, out StringBuilder displayName);
 
         [PreserveSig]
@@ -299,6 +300,7 @@ public static class FileDialog
 
         void SetFolder(IShellItem psi);
 
+        [PreserveSig]
         HResult GetFolder(out IShellItem folder);
 
         HResult GetCurrentSelection(out IShellItem item);
@@ -886,6 +888,11 @@ public partial class FileOpenDialog(FileDialogFlag fileDialogFlag)
 
         public HResult OnFolderChange(IFileDialog pfd)
         {
+            if (pfd.GetFolder(out var folderShellItem) == HResult.Ok)
+            {
+                folderShellItem.GetDisplayName(SIGDN.FILESYSPATH, out var dirPathBuilder);
+                parentDialog._enteredDir = dirPathBuilder.ToString();
+            }
             return HResult.Ok;
         }
 
@@ -984,6 +991,7 @@ public partial class FileOpenDialog(FileDialogFlag fileDialogFlag)
     private IntPtr _originalWndProc;
 
     public List<string> SelectedTargets { get; } = new();
+    private string _enteredDir = string.Empty;
 
     private static IntPtr GetWindowLongPtr(IntPtr hWnd, int nIndex)
     {
@@ -1050,9 +1058,7 @@ public partial class FileOpenDialog(FileDialogFlag fileDialogFlag)
             {
                 if (SelectedTargets.Count != 0)
                     return true;
-                pDialog.GetFolder(out var folderShellItem);
-                folderShellItem.GetDisplayName(SIGDN.FILESYSPATH, out var folderPath);
-                SelectedTargets.Add(folderPath.ToString());
+                SelectedTargets.Add(_enteredDir);
                 return true;
             }
         }
