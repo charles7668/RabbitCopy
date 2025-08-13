@@ -32,7 +32,7 @@ public partial class MainWindowViewModel : ObservableObject
         HashSet<string> dirCopyList = [];
         try
         {
-            foreach (var src in srcList)
+            foreach (var src in srcList.Where(s => !string.IsNullOrWhiteSpace(s)))
             {
                 var attributes = File.GetAttributes(src);
                 if (attributes.HasFlag(FileAttributes.Directory))
