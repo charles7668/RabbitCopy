@@ -9,6 +9,8 @@ public static class RoboCopyOptionsExtensions
             args.Add("/e");
         if (options.ExcludeEmptyDirs)
             args.Add("/s");
+        if (options.DryRun)
+            args.Add("/l");
         return string.Join(" ", args);
     }
 }

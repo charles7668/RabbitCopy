@@ -15,4 +15,10 @@ public class RoboCopyOptionsBuilder
         _robocopyOptions.ExcludeEmptyDirs = !includeEmpty;
         return this;
     }
+
+    public RoboCopyOptionsBuilder DryRun()
+    {
+        _robocopyOptions.DryRun = true;
+        return this;
+    }
 }

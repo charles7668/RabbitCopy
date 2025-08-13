@@ -16,13 +16,12 @@ public partial class MainWindowViewModel : ObservableObject
     private string _destText = string.Empty;
 
     [ObservableProperty]
-    private string _srcText = string.Empty;
+    private bool _excludeEmptyDirsOption;
 
     [ObservableProperty]
-    private bool _excludeSubDirsOption;
+    private string _srcText = string.Empty;
 
-    [RelayCommand]
-    private async Task ExecuteCopy()
+    private async Task Copy(bool dryRun)
     {
         if (string.IsNullOrWhiteSpace(SrcText) || string.IsNullOrWhiteSpace(DestText))
         {
@@ -94,9 +93,10 @@ public partial class MainWindowViewModel : ObservableObject
 
         var destDir = DestText.TrimEnd('\\');
 
+
         foreach (var dirCopy in dirCopyList)
         {
-            var options = new RoboCopyOptionsBuilder().WithSubDirs(!ExcludeSubDirsOption).Build();
+            var options = CreateDefaultBuilder().WithSubDirs(!ExcludeEmptyDirsOption).Build();
             await roboCopy.StartCopy(dirCopy, destDir, ["*.*"], options);
         }
 
@@ -104,9 +104,31 @@ public partial class MainWindowViewModel : ObservableObject
         {
             var dirPath = group.Key;
             var fileList = group.Value;
-            var options = new RoboCopyOptionsBuilder().Build();
+            var options = CreateDefaultBuilder().Build();
             await roboCopy.StartCopy(dirPath, destDir, fileList, options);
         }
+
+        return;
+
+        RoboCopyOptionsBuilder CreateDefaultBuilder()
+        {
+            var optionsBuilder = new RoboCopyOptionsBuilder();
+            if (dryRun)
+                optionsBuilder.DryRun();
+            return optionsBuilder;
+        }
+    }
+
+    [RelayCommand]
+    private async Task DryRunCopy()
+    {
+        await Copy(true);
+    }
+
+    [RelayCommand]
+    private async Task ExecuteCopy()
+    {
+        await Copy(false);
     }
 
     [RelayCommand]
