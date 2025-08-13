@@ -47,12 +47,14 @@
                         <ColumnDefinition Width="300" />
                         <ColumnDefinition Width="*" />
                     </Grid.ColumnDefinitions>
-                    <hc:TextBox Height="200" IsReadOnly="True" />
+                    <hc:TextBox Height="200" IsReadOnly="True"
+                                Text="{Binding CopyLog}"
+                                TextWrapping="Wrap" />
                     <Grid Grid.Column="1">
                         <Border Padding="10">
                             <hc:SimpleStackPanel HorizontalAlignment="Stretch">
                                 <hc:SimpleStackPanel Orientation="Horizontal">
-                                    <Button>Execute</Button>
+                                    <Button Command="{Binding ExecuteCopyCommand}">Execute</Button>
                                 </hc:SimpleStackPanel>
                             </hc:SimpleStackPanel>
                         </Border>
