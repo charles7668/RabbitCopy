@@ -303,7 +303,8 @@ public static class FileDialog
         [PreserveSig]
         HResult GetFolder(out IShellItem folder);
 
-        HResult GetCurrentSelection(out IShellItem item);
+        [PreserveSig]
+        HResult GetCurrentSelection(out IShellItem? item);
 
         void SetFileName(string pszName);
 
@@ -315,7 +316,8 @@ public static class FileDialog
 
         void SetFileNameLabel(string pszLabel);
 
-        HResult GetResult(out IShellItem shellItem);
+        [PreserveSig]
+        HResult GetResult(out IShellItem? shellItem);
 
         void AddPlace(IShellItem psi, FDAP fdap);
 
@@ -1058,6 +1060,13 @@ public partial class FileOpenDialog(FileDialogFlag fileDialogFlag)
             {
                 if (SelectedTargets.Count != 0)
                     return true;
+                var hRes = pDialog.GetResult(out var selectedShellItem);
+                if (hRes == HResult.Ok && selectedShellItem != null)
+                {
+                    selectedShellItem.GetDisplayName(SIGDN.FILESYSPATH, out var selectedFile);
+                    SelectedTargets.Add(selectedFile.ToString());
+                    return true;
+                }
                 SelectedTargets.Add(_enteredDir);
                 return true;
             }
