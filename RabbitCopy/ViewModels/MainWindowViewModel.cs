@@ -49,7 +49,7 @@ public partial class MainWindowViewModel : ObservableObject
         if (_runOptions is null)
             return;
 
-        await DryRunCopy();
+        await ExecuteCopy();
 
         ShutDown();
     }
@@ -134,7 +134,7 @@ public partial class MainWindowViewModel : ObservableObject
 
         foreach (var dirCopy in dirCopyList)
         {
-            var options = CreateDefaultBuilder().WithSubDirs(!ExcludeEmptyDirsOption).Build();
+            var options = CreateDefaultBuilder().Build();
             await roboCopy.StartCopy(dirCopy, destDir, ["*.*"], options);
         }
 
@@ -153,6 +153,7 @@ public partial class MainWindowViewModel : ObservableObject
             var optionsBuilder = new RoboCopyOptionsBuilder();
             if (dryRun)
                 optionsBuilder.DryRun();
+            optionsBuilder.WithSubDirs(!ExcludeEmptyDirsOption);
             return optionsBuilder;
         }
     }
