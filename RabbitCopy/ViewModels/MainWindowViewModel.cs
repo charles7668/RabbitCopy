@@ -1,7 +1,9 @@
 ﻿using System.IO;
 using System.Windows;
+using System.Windows.Media.Imaging;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using RabbitCopy.Helper;
 using RabbitCopy.RoboCopyModule;
 using MessageBox = HandyControl.Controls.MessageBox;
 
@@ -20,6 +22,14 @@ public partial class MainWindowViewModel : ObservableObject
 
     [ObservableProperty]
     private string _srcText = string.Empty;
+
+    [ObservableProperty]
+    private BitmapImage? _windowIcon;
+
+    public MainWindowViewModel()
+    {
+        WindowIcon = ImageHelper.ByteArrayToBitmapImage(IconResource.rabbit_32x32);
+    }
 
     private async Task Copy(bool dryRun)
     {
