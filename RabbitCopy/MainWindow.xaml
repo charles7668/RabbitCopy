@@ -5,10 +5,17 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:hc="https://handyorg.github.io/handycontrol"
         xmlns:viewModels="clr-namespace:RabbitCopy.ViewModels"
+        xmlns:b="http://schemas.microsoft.com/xaml/behaviors"
         mc:Ignorable="d"
         d:DataContext="{d:DesignInstance Type=viewModels:MainWindowViewModel, IsDesignTimeCreatable=True}"
         Icon="{Binding WindowIcon}"
         Title="RabbitCopy" Height="500" Width="505">
+    <b:Interaction.Triggers>
+        <b:EventTrigger EventName="Loaded">
+            <b:InvokeCommandAction Command="{Binding WindowLoadedCommand}" />
+        </b:EventTrigger>
+    </b:Interaction.Triggers>
+
     <Grid>
         <ScrollViewer>
             <StackPanel HorizontalAlignment="Stretch">

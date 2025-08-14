@@ -15,6 +15,8 @@
     <PackageReference Include="HandyControl" Version="3.6.0-rc2" />
     <PackageReference Include="Microsoft-WindowsAPICodePack-Core" Version="1.1.5" />
     <PackageReference Include="Microsoft-WindowsAPICodePack-Shell" Version="1.1.5" />
+    <PackageReference Include="Microsoft.Xaml.Behaviors.Wpf" Version="1.1.135" />
+    <PackageReference Include="System.CommandLine" Version="2.0.0-beta7.25380.108" />
   </ItemGroup>
 
   <ItemGroup>

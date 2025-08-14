@@ -3,7 +3,9 @@ using System.Windows;
 using System.Windows.Media.Imaging;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using CommunityToolkit.Mvvm.Messaging;
 using RabbitCopy.Helper;
+using RabbitCopy.Models;
 using RabbitCopy.RoboCopyModule;
 using MessageBox = HandyControl.Controls.MessageBox;
 
@@ -26,9 +28,35 @@ public partial class MainWindowViewModel : ObservableObject
     [ObservableProperty]
     private BitmapImage? _windowIcon;
 
+    private RunOptions? _runOptions;
+
+    public MainWindowViewModel(RunOptions runOptions)
+    {
+        _runOptions = runOptions;
+        _srcText = string.Join("\n", runOptions.SrcPaths ?? []);
+        _destText = runOptions.DestPath ?? string.Empty;
+    }
+
     public MainWindowViewModel()
     {
         WindowIcon = ImageHelper.ByteArrayToBitmapImage(IconResource.rabbit_32x32);
+    }
+
+    [RelayCommand]
+    private async Task WindowLoaded()
+    {
+        // normal launch
+        if (_runOptions is null)
+            return;
+
+        await DryRunCopy();
+
+        ShutDown();
+    }
+
+    private void ShutDown()
+    {
+        WeakReferenceMessenger.Default.Send(new ShutdownRequestMessage());
     }
 
     private async Task Copy(bool dryRun)
