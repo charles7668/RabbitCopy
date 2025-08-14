@@ -1,4 +1,6 @@
-﻿using System.Drawing;
+﻿using System.Diagnostics;
+using System.Drawing;
+using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Runtime.InteropServices.ComTypes;
 using System.Text;
@@ -29,6 +31,9 @@ public class ContextMenuExt : IShellExtInit, IContextMenu
     private readonly List<string> _dstArray = [];
     private readonly List<string> _srcArray = [];
     private IntPtr _menuBitmap;
+    private const int COPY_MENU_ITEM_ID = 0;
+    private const int PASTE_MENU_ITEM_ID = 1;
+    private static List<string> _copyCandidate = [];
 
     /// <summary>
     /// Queries the context menu for the specified menu handle and command range.
@@ -60,7 +65,7 @@ public class ContextMenuExt : IShellExtInit, IContextMenu
             MENUITEMINFO menuItemInfo = new()
             {
                 fMask = MIIM.MIIM_ID | MIIM.MIIM_STRING | MIIM.MIIM_FTYPE | MIIM.MIIM_BITMAP,
-                wID = idCmdFirst,
+                wID = idCmdFirst + COPY_MENU_ITEM_ID,
                 fType = MFT.MFT_STRING,
                 dwTypeData = "Copy",
                 cch = 11,
@@ -91,7 +96,7 @@ public class ContextMenuExt : IShellExtInit, IContextMenu
             MENUITEMINFO menuItemInfo = new()
             {
                 fMask = MIIM.MIIM_ID | MIIM.MIIM_STRING | MIIM.MIIM_FTYPE | MIIM.MIIM_BITMAP,
-                wID = idCmdFirst,
+                wID = idCmdFirst + PASTE_MENU_ITEM_ID,
                 fType = MFT.MFT_STRING,
                 dwTypeData = "Paste",
                 cch = 11,
@@ -114,6 +119,45 @@ public class ContextMenuExt : IShellExtInit, IContextMenu
 
     public void InvokeCommand(IntPtr pici)
     {
+        var ici = (CMINVOKECOMMANDINFO?)Marshal.PtrToStructure(pici, typeof(CMINVOKECOMMANDINFO));
+        if (ici == null)
+            return;
+        var location = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
+        if (ici.Value.verb == COPY_MENU_ITEM_ID)
+        {
+            _copyCandidate.Clear();
+            _copyCandidate.AddRange(_srcArray);
+        }
+        else if (ici.Value.verb == PASTE_MENU_ITEM_ID)
+        {
+            if (_copyCandidate.Count == 0 || _dstArray.Count == 0 || location == null)
+                return;
+            var exePath = Path.Combine(location, "RabbitCopy.exe");
+            var src = _copyCandidate.Select(s =>
+            {
+                try
+                {
+                    FileAttributes attributes = File.GetAttributes(s);
+                    if (attributes.HasFlag(FileAttributes.Directory))
+                        return s + "\\";
+                    return s;
+                }
+                catch
+                {
+                    return "";
+                }
+            }).Where(s => s != "");
+            var temp = src.ToList().ConvertAll(input => $"--files {input}");
+            string[] args = ["--dest", _dstArray[0], string.Join(" ", temp)];
+            ProcessStartInfo startInfo = new()
+            {
+                FileName = exePath,
+                Arguments = string.Join(" ", args),
+                UseShellExecute = true,
+                CreateNoWindow = true
+            };
+            Process.Start(startInfo);
+        }
     }
 
     public void GetCommandString(UIntPtr idCmd, uint uFlags, IntPtr pReserved, StringBuilder pszName, uint cchMax)
