@@ -182,20 +182,23 @@ public partial class MainWindowViewModel : ObservableObject
 
         var destDir = DestText.TrimEnd('\\');
 
-
-        foreach (var dirCopy in dirCopyList)
+        await Task.Factory.StartNew(async () =>
         {
-            var options = CreateDefaultBuilder().Build();
-            await roboCopy.StartCopy(dirCopy, destDir, ["*.*"], options);
-        }
+            foreach (var dirCopy in dirCopyList)
+            {
+                var options = CreateDefaultBuilder().Build();
+                await roboCopy.StartCopy(dirCopy, destDir, ["*.*"], options);
+            }
 
-        foreach (var group in srcGroup)
-        {
-            var dirPath = group.Key;
-            var fileList = group.Value;
-            var options = CreateDefaultBuilder().Build();
-            await roboCopy.StartCopy(dirPath, destDir, fileList, options);
-        }
+            foreach (var group in srcGroup)
+            {
+                var dirPath = group.Key;
+                var fileList = group.Value;
+                var options = CreateDefaultBuilder().Build();
+                await roboCopy.StartCopy(dirPath, destDir, fileList, options);
+            }
+        }, TaskCreationOptions.LongRunning).Unwrap();
+
 
         return;
 
