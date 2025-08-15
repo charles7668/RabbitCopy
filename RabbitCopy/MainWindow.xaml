@@ -147,6 +147,11 @@
                         </Border>
                     </Grid>
                 </Grid>
+                <hc:SimpleStackPanel Orientation="Horizontal">
+                    <TextBlock>
+                        Progress : <TextBlock Text="{Binding ProgressText}"></TextBlock>
+                    </TextBlock>
+                </hc:SimpleStackPanel>
             </StackPanel>
         </ScrollViewer>
     </Grid>

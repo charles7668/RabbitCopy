@@ -1,6 +1,7 @@
 ﻿using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.IO;
+using System.Text.RegularExpressions;
 using System.Windows;
 using System.Windows.Data;
 using System.Windows.Media.Imaging;
@@ -42,6 +43,11 @@ public partial class MainWindowViewModel : ObservableObject
     private CopyModeItem _selectedCopyMode;
 
     private RunOptions? _runOptions;
+
+    private float _progress;
+
+    [ObservableProperty]
+    private string _progressText = "0.0%";
 
     public MainWindowViewModel(RunOptions runOptions) : this()
     {
@@ -175,12 +181,17 @@ public partial class MainWindowViewModel : ObservableObject
 
         CopyLog = string.Empty;
 
+        var destDir = DestText.TrimEnd('\\');
+
+        _progress = 0.0f;
+        var totalTaskCount = dirCopyList.Count + srcGroup.Count;
+        var completeTaskCount = 0;
+        var unitProgress = 100.0f / totalTaskCount;
+
         var roboCopy = new RoboCopy(
-            output => CopyLog += $"{output}\n",
+            OnOutputReceive,
             error => CopyLog += $"Error : {error}\n"
         );
-
-        var destDir = DestText.TrimEnd('\\');
 
         await Task.Factory.StartNew(async () =>
         {
@@ -188,6 +199,8 @@ public partial class MainWindowViewModel : ObservableObject
             {
                 var options = CreateDefaultBuilder().Build();
                 await roboCopy.StartCopy(dirCopy, destDir, ["*.*"], options);
+                OnProgressUpdate(100);
+                completeTaskCount++;
             }
 
             foreach (var group in srcGroup)
@@ -196,11 +209,37 @@ public partial class MainWindowViewModel : ObservableObject
                 var fileList = group.Value;
                 var options = CreateDefaultBuilder().Build();
                 await roboCopy.StartCopy(dirPath, destDir, fileList, options);
+                OnProgressUpdate(100);
+                completeTaskCount++;
             }
         }, TaskCreationOptions.LongRunning).Unwrap();
 
 
         return;
+
+        void OnProgressUpdate(float progress)
+        {
+            _progress = unitProgress * completeTaskCount + (progress / 100) * unitProgress;
+            ProgressText = $"{_progress:0.0}%";
+        }
+
+        void OnOutputReceive(string output)
+        {
+            if (output.Length == 6)
+            {
+                var pattern = new Regex("^\\s?(\\d+.\\d)%");
+                var match = pattern.Match(output);
+                if (match.Success)
+                {
+                    if (float.TryParse(match.Groups[1].Value, out var progress))
+                        OnProgressUpdate(progress);
+                }
+
+                return;
+            }
+
+            CopyLog += $"{output}\n";
+        }
 
         RoboCopyOptionsBuilder CreateDefaultBuilder()
         {
