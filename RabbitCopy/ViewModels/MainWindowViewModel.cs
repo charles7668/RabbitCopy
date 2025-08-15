@@ -46,6 +46,8 @@ public partial class MainWindowViewModel : ObservableObject
 
     private float _progress;
 
+    private CancellationTokenSource _copyProCancellationTokenSource = new();
+
     [ObservableProperty]
     private string _progressText = "0.0%";
 
@@ -109,6 +111,12 @@ public partial class MainWindowViewModel : ObservableObject
         await ExecuteCopy();
 
         ShutDown();
+    }
+
+    [RelayCommand]
+    private void WindowClosing()
+    {
+        _copyProCancellationTokenSource.Cancel();
     }
 
     private void ShutDown()
@@ -188,27 +196,35 @@ public partial class MainWindowViewModel : ObservableObject
         var completeTaskCount = 0;
         var unitProgress = 100.0f / totalTaskCount;
 
+        _copyProCancellationTokenSource = new CancellationTokenSource();
+
         var roboCopy = new RoboCopy(
             OnOutputReceive,
             error => CopyLog += $"Error : {error}\n"
         );
 
+        var cancellationToken = _copyProCancellationTokenSource.Token;
+
         await Task.Factory.StartNew(async () =>
         {
             foreach (var dirCopy in dirCopyList)
             {
+                if (cancellationToken.IsCancellationRequested)
+                    return;
                 var options = CreateDefaultBuilder().Build();
-                await roboCopy.StartCopy(dirCopy, destDir, ["*.*"], options);
+                await roboCopy.StartCopy(dirCopy, destDir, ["*.*"], options, cancellationToken);
                 OnProgressUpdate(100);
                 completeTaskCount++;
             }
 
             foreach (var group in srcGroup)
             {
+                if (cancellationToken.IsCancellationRequested)
+                    return;
                 var dirPath = group.Key;
                 var fileList = group.Value;
                 var options = CreateDefaultBuilder().Build();
-                await roboCopy.StartCopy(dirPath, destDir, fileList, options);
+                await roboCopy.StartCopy(dirPath, destDir, fileList, options, cancellationToken);
                 OnProgressUpdate(100);
                 completeTaskCount++;
             }

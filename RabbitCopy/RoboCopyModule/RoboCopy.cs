@@ -17,7 +17,8 @@ public class RoboCopy
     private Action<string>? OnOutputReceive { get; }
     private Action<string>? OnErrorReceive { get; }
 
-    public Task StartCopy(string srcDir, string destDir, IEnumerable<string> files, RoboCopyOptions options)
+    public Task StartCopy(string srcDir, string destDir, IEnumerable<string> files, RoboCopyOptions options,
+        CancellationToken cancellationToken)
     {
         var fileArgs = string.Join(" ", files.Select(f => $"\"{f}\""));
         var roboCopyArgs = options.ToArgsString();
@@ -45,6 +46,15 @@ public class RoboCopy
                 OnErrorReceive?.Invoke(args.Data);
         };
         proc.Start();
+        Task.Factory.StartNew(() =>
+        {
+            while (!proc.HasExited)
+            {
+                if (cancellationToken.IsCancellationRequested)
+                    proc.Kill();
+                Thread.Sleep(100);
+            }
+        }, TaskCreationOptions.LongRunning);
         proc.BeginOutputReadLine();
         proc.BeginErrorReadLine();
         proc.WaitForExit();

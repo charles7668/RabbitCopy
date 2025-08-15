@@ -16,6 +16,9 @@
         <b:EventTrigger EventName="Loaded">
             <b:InvokeCommandAction Command="{Binding WindowLoadedCommand}" />
         </b:EventTrigger>
+        <b:EventTrigger EventName="Closing">
+            <b:InvokeCommandAction Command="{Binding WindowClosingCommand}" />
+        </b:EventTrigger>
     </b:Interaction.Triggers>
 
     <Grid>
