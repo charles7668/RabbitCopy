@@ -18,39 +18,6 @@ namespace RabbitCopy.ViewModels;
 
 public partial class MainWindowViewModel : ObservableObject
 {
-    [ObservableProperty]
-    private string _copyLog = string.Empty;
-
-    [ObservableProperty]
-    private string _destText = string.Empty;
-
-    [ObservableProperty]
-    private bool _excludeEmptyDirsOption;
-
-    [ObservableProperty]
-    private string _srcText = string.Empty;
-
-    [ObservableProperty]
-    private BitmapImage? _windowIcon;
-
-    [ObservableProperty]
-    private ObservableCollection<CopyModeItem> _copyModeItems;
-
-    [ObservableProperty]
-    private ICollectionView _copyModeView;
-
-    [ObservableProperty]
-    private CopyModeItem _selectedCopyMode;
-
-    private RunOptions? _runOptions;
-
-    private float _progress;
-
-    private CancellationTokenSource _copyProCancellationTokenSource = new();
-
-    [ObservableProperty]
-    private string _progressText = "0.0%";
-
     public MainWindowViewModel(RunOptions runOptions) : this()
     {
         _runOptions = runOptions;
@@ -101,28 +68,41 @@ public partial class MainWindowViewModel : ObservableObject
         WindowIcon = ImageHelper.ByteArrayToBitmapImage(IconResource.rabbit_32x32);
     }
 
-    [RelayCommand]
-    private async Task WindowLoaded()
-    {
-        // normal launch
-        if (_runOptions is null)
-            return;
+    [ObservableProperty]
+    private string _copyLog = string.Empty;
 
-        await ExecuteCopy();
+    [ObservableProperty]
+    private ObservableCollection<CopyModeItem> _copyModeItems;
 
-        ShutDown();
-    }
+    [ObservableProperty]
+    private ICollectionView _copyModeView;
 
-    [RelayCommand]
-    private void WindowClosing()
-    {
-        _copyProCancellationTokenSource.Cancel();
-    }
+    private CancellationTokenSource _copyProCancellationTokenSource = new();
 
-    private void ShutDown()
-    {
-        WeakReferenceMessenger.Default.Send(new ShutdownRequestMessage());
-    }
+    [ObservableProperty]
+    private string _destText = string.Empty;
+
+    [ObservableProperty]
+    private bool _excludeEmptyDirsOption;
+
+    private float _progress;
+
+    [ObservableProperty]
+    private string _progressText = "0.0%";
+
+    private readonly RunOptions? _runOptions;
+
+    [ObservableProperty]
+    private CopyModeItem _selectedCopyMode;
+
+    [ObservableProperty]
+    private string _srcText = string.Empty;
+
+    [ObservableProperty]
+    private bool _unbufferedIo;
+
+    [ObservableProperty]
+    private BitmapImage? _windowIcon;
 
     private async Task Copy(bool dryRun)
     {
@@ -174,9 +154,7 @@ public partial class MainWindowViewModel : ObservableObject
         catch (Exception e)
         {
             if (e is DirectoryNotFoundException or FileNotFoundException)
-            {
                 needCreate = true;
-            }
             else
             {
                 MessageBox.Show(e.Message, "Error", icon: MessageBoxImage.Error);
@@ -235,7 +213,7 @@ public partial class MainWindowViewModel : ObservableObject
 
         void OnProgressUpdate(float progress)
         {
-            _progress = unitProgress * completeTaskCount + (progress / 100) * unitProgress;
+            _progress = unitProgress * completeTaskCount + progress / 100 * unitProgress;
             ProgressText = $"{_progress:0.0}%";
         }
 
@@ -263,6 +241,8 @@ public partial class MainWindowViewModel : ObservableObject
             if (dryRun)
                 optionsBuilder.DryRun();
             optionsBuilder.WithSubDirs(!ExcludeEmptyDirsOption).SetCopyMode(SelectedCopyMode.Mode);
+            if (UnbufferedIo)
+                optionsBuilder.EnableUnbufferedIo();
             return optionsBuilder;
         }
     }
@@ -311,5 +291,28 @@ public partial class MainWindowViewModel : ObservableObject
             return "";
         }).Where(src => !string.IsNullOrWhiteSpace(src));
         SrcText = string.Join("\n", appendBackslash);
+    }
+
+    private void ShutDown()
+    {
+        WeakReferenceMessenger.Default.Send(new ShutdownRequestMessage());
+    }
+
+    [RelayCommand]
+    private void WindowClosing()
+    {
+        _copyProCancellationTokenSource.Cancel();
+    }
+
+    [RelayCommand]
+    private async Task WindowLoaded()
+    {
+        // normal launch
+        if (_runOptions is null)
+            return;
+
+        await ExecuteCopy();
+
+        ShutDown();
     }
 }

@@ -13,6 +13,8 @@ public static class RoboCopyOptionsExtensions
             args.Add("/s");
         if (options.DryRun)
             args.Add("/l");
+        if (options.UnbufferedIo)
+            args.Add("/j");
         args.Add(CopyModeArgs(options.CopyMode));
 
         return string.Join(" ", args);

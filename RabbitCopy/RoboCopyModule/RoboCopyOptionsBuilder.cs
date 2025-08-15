@@ -11,10 +11,15 @@ public class RoboCopyOptionsBuilder
         return _robocopyOptions;
     }
 
-    public RoboCopyOptionsBuilder WithSubDirs(bool includeEmpty)
+    public RoboCopyOptionsBuilder DryRun()
     {
-        _robocopyOptions.IncludeSubDirs = true;
-        _robocopyOptions.ExcludeEmptyDirs = !includeEmpty;
+        _robocopyOptions.DryRun = true;
+        return this;
+    }
+
+    public RoboCopyOptionsBuilder EnableUnbufferedIo()
+    {
+        _robocopyOptions.UnbufferedIo = true;
         return this;
     }
 
@@ -24,9 +29,10 @@ public class RoboCopyOptionsBuilder
         return this;
     }
 
-    public RoboCopyOptionsBuilder DryRun()
+    public RoboCopyOptionsBuilder WithSubDirs(bool includeEmpty)
     {
-        _robocopyOptions.DryRun = true;
+        _robocopyOptions.IncludeSubDirs = true;
+        _robocopyOptions.ExcludeEmptyDirs = !includeEmpty;
         return this;
     }
 }

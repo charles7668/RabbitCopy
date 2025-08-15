@@ -10,5 +10,7 @@ public class RoboCopyOptions
 
     public bool DryRun { get; set; }
 
+    public bool UnbufferedIo { get; set; }
+
     public CopyMode CopyMode { get; set; } = CopyMode.DIFF_SIZE_DATE;
 }
