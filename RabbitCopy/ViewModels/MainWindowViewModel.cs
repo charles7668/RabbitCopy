@@ -1,9 +1,13 @@
-﻿using System.IO;
+﻿using System.Collections.ObjectModel;
+using System.ComponentModel;
+using System.IO;
 using System.Windows;
+using System.Windows.Data;
 using System.Windows.Media.Imaging;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
+using RabbitCopy.Enums;
 using RabbitCopy.Helper;
 using RabbitCopy.Models;
 using RabbitCopy.RoboCopyModule;
@@ -28,9 +32,18 @@ public partial class MainWindowViewModel : ObservableObject
     [ObservableProperty]
     private BitmapImage? _windowIcon;
 
+    [ObservableProperty]
+    private ObservableCollection<CopyModeItem> _copyModeItems;
+
+    [ObservableProperty]
+    private ICollectionView _copyModeView;
+
+    [ObservableProperty]
+    private CopyModeItem? _selectedCopyMode;
+
     private RunOptions? _runOptions;
 
-    public MainWindowViewModel(RunOptions runOptions)
+    public MainWindowViewModel(RunOptions runOptions) : this()
     {
         _runOptions = runOptions;
         _srcText = string.Join("\n", runOptions.SrcPaths ?? []);
@@ -39,6 +52,44 @@ public partial class MainWindowViewModel : ObservableObject
 
     public MainWindowViewModel()
     {
+        _copyModeItems =
+        [
+            new CopyModeItem
+            {
+                Mode = CopyMode.DIFF_NO_OVERWRITE, Description = "Only copy files that don't exist",
+                Category = "Group1"
+            },
+
+            new CopyModeItem
+            {
+                Mode = CopyMode.DIFF_SIZE_DATE, Description = "Copy files with different size or date",
+                Category = "Group1"
+            },
+
+            new CopyModeItem
+                { Mode = CopyMode.DIFF_NEWER, Description = "Copy only newer files", Category = "Group1" },
+            new CopyModeItem
+                { Mode = CopyMode.COPY_OVERWRITE, Description = "Copy all files with overwrite", Category = "Group1" },
+            // Group2
+            new CopyModeItem
+            {
+                Mode = CopyMode.SYNC_SIZE_DATE, Description = "Sync files with different size or date",
+                Category = "Group2"
+            },
+            new CopyModeItem
+                { Mode = CopyMode.MOVE_OVERWRITE, Description = "Move files with overwrite", Category = "Group2" },
+            new CopyModeItem
+            {
+                Mode = CopyMode.MOVE_NO_OVERWRITE, Description = "Move files that don't exist in destination",
+                Category = "Group2"
+            }
+        ];
+
+        _copyModeView = CollectionViewSource.GetDefaultView(_copyModeItems);
+        _copyModeView.GroupDescriptions.Add(new PropertyGroupDescription("Category"));
+
+        _selectedCopyMode = _copyModeItems[1];
+
         WindowIcon = ImageHelper.ByteArrayToBitmapImage(IconResource.rabbit_32x32);
     }
 

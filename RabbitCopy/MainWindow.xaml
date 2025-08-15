@@ -6,6 +6,8 @@
         xmlns:hc="https://handyorg.github.io/handycontrol"
         xmlns:viewModels="clr-namespace:RabbitCopy.ViewModels"
         xmlns:b="http://schemas.microsoft.com/xaml/behaviors"
+        xmlns:models="clr-namespace:RabbitCopy.Models"
+        xmlns:converters="clr-namespace:RabbitCopy.Converters"
         mc:Ignorable="d"
         d:DataContext="{d:DesignInstance Type=viewModels:MainWindowViewModel, IsDesignTimeCreatable=True}"
         Icon="{Binding WindowIcon}"
@@ -60,15 +62,88 @@
                                 TextWrapping="Wrap" />
                     <Grid Grid.Column="1">
                         <Border Padding="10">
-                            <hc:SimpleStackPanel HorizontalAlignment="Stretch">
-                                <CheckBox HorizontalAlignment="Left" IsChecked="{Binding ExcludeEmptyDirsOption}">
-                                    Exclude Empty Directories
-                                </CheckBox>
-                                <hc:SimpleStackPanel Orientation="Horizontal" Margin="0,10,0,0">
+                            <Grid>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="*" />
+                                    <RowDefinition Height="Auto" />
+                                </Grid.RowDefinitions>
+                                <ScrollViewer>
+                                    <hc:UniformSpacingPanel Orientation="Vertical" HorizontalAlignment="Stretch"
+                                                            Spacing="10">
+                                        <ComboBox ItemsSource="{Binding CopyModeView}"
+                                                  SelectedItem="{Binding SelectedCopyMode}">
+                                            <ComboBox.Resources>
+                                                <converters:CopyModeEnumToStringConverter
+                                                    x:Key="CopyModeEnumToStringConverter" />
+                                            </ComboBox.Resources>
+                                            <ComboBox.GroupStyle>
+                                                <GroupStyle>
+                                                    <GroupStyle.HeaderTemplate>
+                                                        <DataTemplate>
+                                                            <Border Background="LightGray"
+                                                                    Padding="5,2"
+                                                                    Margin="0,2"
+                                                                    d:DataContext="{d:DesignInstance Type=models:CopyModeItem}">
+                                                                <TextBlock
+                                                                    Text="{Binding Mode,Converter={StaticResource CopyModeEnumToStringConverter}}"
+                                                                    FontWeight="Bold"
+                                                                    FontSize="11"
+                                                                    Foreground="DarkSlateGray" />
+                                                            </Border>
+                                                        </DataTemplate>
+                                                    </GroupStyle.HeaderTemplate>
+                                                    <GroupStyle.ContainerStyle>
+                                                        <Style TargetType="GroupItem">
+                                                            <Setter Property="Template">
+                                                                <Setter.Value>
+                                                                    <ControlTemplate TargetType="GroupItem">
+                                                                        <StackPanel>
+                                                                            <ItemsPresenter />
+                                                                            <Separator Margin="5,2"
+                                                                                Background="LightGray"
+                                                                                Height="1" />
+                                                                        </StackPanel>
+                                                                    </ControlTemplate>
+                                                                </Setter.Value>
+                                                            </Setter>
+                                                        </Style>
+                                                    </GroupStyle.ContainerStyle>
+                                                </GroupStyle>
+                                            </ComboBox.GroupStyle>
+
+                                            <ComboBox.ItemTemplate>
+                                                <DataTemplate>
+                                                    <StackPanel Margin="5,2"
+                                                                d:DataContext="{d:DesignInstance Type=models:CopyModeItem}">
+                                                        <TextBlock
+                                                            Text="{Binding Mode, Converter={StaticResource CopyModeEnumToStringConverter}}"
+                                                            FontWeight="Medium" />
+                                                    </StackPanel>
+                                                </DataTemplate>
+                                            </ComboBox.ItemTemplate>
+
+                                            <ComboBox.ItemContainerStyle>
+                                                <Style TargetType="ComboBoxItem">
+                                                    <Setter Property="Padding" Value="5,3" />
+                                                    <Style.Triggers>
+                                                        <Trigger Property="IsHighlighted" Value="True">
+                                                            <Setter Property="Background" Value="LightBlue" />
+                                                        </Trigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </ComboBox.ItemContainerStyle>
+                                        </ComboBox>
+                                        <CheckBox HorizontalAlignment="Left"
+                                                  IsChecked="{Binding ExcludeEmptyDirsOption}">
+                                            Exclude Empty Directories
+                                        </CheckBox>
+                                    </hc:UniformSpacingPanel>
+                                </ScrollViewer>
+                                <hc:SimpleStackPanel Grid.Row="1" Orientation="Horizontal" Margin="0,10,0,0">
                                     <Button Command="{Binding ExecuteCopyCommand}">Execute</Button>
                                     <Button Command="{Binding DryRunCopyCommand}">Dry Run</Button>
                                 </hc:SimpleStackPanel>
-                            </hc:SimpleStackPanel>
+                            </Grid>
                         </Border>
                     </Grid>
                 </Grid>
