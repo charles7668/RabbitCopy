@@ -39,7 +39,7 @@ public partial class MainWindowViewModel : ObservableObject
     private ICollectionView _copyModeView;
 
     [ObservableProperty]
-    private CopyModeItem? _selectedCopyMode;
+    private CopyModeItem _selectedCopyMode;
 
     private RunOptions? _runOptions;
 
@@ -204,7 +204,7 @@ public partial class MainWindowViewModel : ObservableObject
             var optionsBuilder = new RoboCopyOptionsBuilder();
             if (dryRun)
                 optionsBuilder.DryRun();
-            optionsBuilder.WithSubDirs(!ExcludeEmptyDirsOption);
+            optionsBuilder.WithSubDirs(!ExcludeEmptyDirsOption).SetCopyMode(SelectedCopyMode.Mode);
             return optionsBuilder;
         }
     }

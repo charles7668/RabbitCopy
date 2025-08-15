@@ -1,4 +1,6 @@
-﻿namespace RabbitCopy.RoboCopyModule;
+﻿using RabbitCopy.Enums;
+
+namespace RabbitCopy.RoboCopyModule;
 
 public class RoboCopyOptionsBuilder
 {
@@ -13,6 +15,12 @@ public class RoboCopyOptionsBuilder
     {
         _robocopyOptions.IncludeSubDirs = true;
         _robocopyOptions.ExcludeEmptyDirs = !includeEmpty;
+        return this;
+    }
+
+    public RoboCopyOptionsBuilder SetCopyMode(CopyMode mode)
+    {
+        _robocopyOptions.CopyMode = mode;
         return this;
     }
 
