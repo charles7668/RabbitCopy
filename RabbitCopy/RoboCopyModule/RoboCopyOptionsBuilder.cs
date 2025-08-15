@@ -29,6 +29,12 @@ public class RoboCopyOptionsBuilder
         return this;
     }
 
+    public RoboCopyOptionsBuilder SetFileProperty(FileProperty property)
+    {
+        _robocopyOptions.FileProperties = property;
+        return this;
+    }
+
     public RoboCopyOptionsBuilder WithSubDirs(bool includeEmpty)
     {
         _robocopyOptions.IncludeSubDirs = true;

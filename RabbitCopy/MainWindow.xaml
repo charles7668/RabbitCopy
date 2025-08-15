@@ -103,8 +103,8 @@
                                                                         <StackPanel>
                                                                             <ItemsPresenter />
                                                                             <Separator Margin="5,2"
-                                                                                Background="LightGray"
-                                                                                Height="1" />
+                                                                                    Background="LightGray"
+                                                                                    Height="1" />
                                                                         </StackPanel>
                                                                     </ControlTemplate>
                                                                 </Setter.Value>
@@ -144,6 +144,15 @@
                                                   IsChecked="{Binding UnbufferedIo}">
                                             Unbuffered I/O
                                         </CheckBox>
+                                        <hc:SimpleStackPanel HorizontalAlignment="Left" Orientation="Horizontal">
+                                            <hc:SimpleStackPanel.Resources>
+                                                <converters:FilePropertyToStringConverter
+                                                    x:Key="FilePropertyToStringConverter" />
+                                            </hc:SimpleStackPanel.Resources>
+                                            <Button Command="{Binding OpenFilePropertySelectWindowCommand}">File Property</Button>
+                                            <TextBlock VerticalAlignment="Center"
+                                                       Text="{Binding FileProperty, Converter={StaticResource FilePropertyToStringConverter}}" />
+                                        </hc:SimpleStackPanel>
                                     </hc:UniformSpacingPanel>
                                 </ScrollViewer>
                                 <hc:SimpleStackPanel Grid.Row="1" Orientation="Horizontal" Margin="0,10,0,0">
@@ -156,7 +165,7 @@
                 </Grid>
                 <hc:SimpleStackPanel Orientation="Horizontal">
                     <TextBlock>
-                        Progress : <TextBlock Text="{Binding ProgressText}"></TextBlock>
+                        Progress : <TextBlock Text="{Binding ProgressText}" />
                     </TextBlock>
                 </hc:SimpleStackPanel>
             </StackPanel>

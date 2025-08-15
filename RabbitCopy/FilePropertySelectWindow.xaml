@@ -1,0 +1,24 @@
+﻿<Window x:Class="RabbitCopy.FilePropertySelectWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:hc="https://handyorg.github.io/handycontrol"
+        xmlns:viewModels="clr-namespace:RabbitCopy.ViewModels"
+        mc:Ignorable="d"
+        d:DataContext="{d:DesignInstance Type=viewModels:FilePropertySelectWindowViewModel}"
+        WindowStyle="ToolWindow"
+        WindowStartupLocation="CenterOwner"
+        Title="Select File Property" Height="160" Width="150">
+    <Grid>
+        <hc:UniformSpacingPanel Orientation="Vertical" Spacing="5">
+            <CheckBox IsChecked="{Binding Data}">Data</CheckBox>
+            <CheckBox IsChecked="{Binding Attributes}">Attributes</CheckBox>
+            <CheckBox IsChecked="{Binding TimeStamp}">Time Stamps</CheckBox>
+            <CheckBox IsChecked="{Binding AltStream}">ALT Stream</CheckBox>
+            <CheckBox IsChecked="{Binding Acl}">ACL</CheckBox>
+            <CheckBox IsChecked="{Binding OwnerInformation}">Owner Information</CheckBox>
+            <CheckBox IsChecked="{Binding AuditingInformation}">Auditing Information</CheckBox>
+        </hc:UniformSpacingPanel>
+    </Grid>
+</Window>

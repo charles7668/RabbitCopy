@@ -21,7 +21,7 @@ public partial class MainWindow
     public MainWindow()
     {
         InitializeComponent();
-        DataContext = new MainWindowViewModel();
+        DataContext = new MainWindowViewModel(this);
 
         WeakReferenceMessenger.Default.Register<ShutdownRequestMessage>(
             this, (_, _) => { });

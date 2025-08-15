@@ -1,25 +1,11 @@
-﻿using RabbitCopy.Enums;
+﻿using System.Globalization;
+using RabbitCopy.Converters;
+using RabbitCopy.Enums;
 
 namespace RabbitCopy.RoboCopyModule;
 
 public static class RoboCopyOptionsExtensions
 {
-    public static string ToArgsString(this RoboCopyOptions options)
-    {
-        List<string> args = [];
-        if (options.IncludeSubDirs)
-            args.Add("/e");
-        if (options.ExcludeEmptyDirs)
-            args.Add("/s");
-        if (options.DryRun)
-            args.Add("/l");
-        if (options.UnbufferedIo)
-            args.Add("/j");
-        args.Add(CopyModeArgs(options.CopyMode));
-
-        return string.Join(" ", args);
-    }
-
     private static string CopyModeArgs(CopyMode mode)
     {
         return mode switch
@@ -33,5 +19,34 @@ public static class RoboCopyOptionsExtensions
             CopyMode.MOVE_NO_OVERWRITE => "/move /xo /xn /xc",
             _ => throw new ArgumentOutOfRangeException(nameof(mode), mode, null)
         };
+    }
+
+    private static string FilePropertiesArgs(FileProperty fileProperty)
+    {
+        if (fileProperty == (FileProperty.DATA | FileProperty.ATTRIBUTES | FileProperty.TIME_STAMP))
+            return "";
+
+        var converter = new FilePropertyToStringConverter();
+        var converted = (string?)converter.Convert(fileProperty, typeof(string), null, CultureInfo.CurrentCulture);
+        if (!string.IsNullOrEmpty(converted))
+            return "/copy:" + converted;
+        return "/nocopy";
+    }
+
+    public static string ToArgsString(this RoboCopyOptions options)
+    {
+        List<string> args = [];
+        if (options.IncludeSubDirs)
+            args.Add("/e");
+        if (options.ExcludeEmptyDirs)
+            args.Add("/s");
+        if (options.DryRun)
+            args.Add("/l");
+        if (options.UnbufferedIo)
+            args.Add("/j");
+        args.Add(CopyModeArgs(options.CopyMode));
+        args.Add(FilePropertiesArgs(options.FileProperties));
+
+        return string.Join(" ", args);
     }
 }

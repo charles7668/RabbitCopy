@@ -8,6 +8,7 @@ using System.Windows.Media.Imaging;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
+using JetBrains.Annotations;
 using RabbitCopy.Enums;
 using RabbitCopy.Helper;
 using RabbitCopy.Models;
@@ -25,6 +26,12 @@ public partial class MainWindowViewModel : ObservableObject
         _destText = runOptions.DestPath ?? string.Empty;
     }
 
+    public MainWindowViewModel(MainWindow window) : this()
+    {
+        _window = window;
+    }
+
+    [UsedImplicitly]
     public MainWindowViewModel()
     {
         _copyModeItems =
@@ -68,6 +75,8 @@ public partial class MainWindowViewModel : ObservableObject
         WindowIcon = ImageHelper.ByteArrayToBitmapImage(IconResource.rabbit_32x32);
     }
 
+    private readonly RunOptions? _runOptions;
+
     [ObservableProperty]
     private string _copyLog = string.Empty;
 
@@ -85,12 +94,14 @@ public partial class MainWindowViewModel : ObservableObject
     [ObservableProperty]
     private bool _excludeEmptyDirsOption;
 
+    [ObservableProperty]
+    private FileProperty _fileProperty = FileProperty.DATA | FileProperty.ATTRIBUTES |
+                                         FileProperty.TIME_STAMP;
+
     private float _progress;
 
     [ObservableProperty]
     private string _progressText = "0.0%";
-
-    private readonly RunOptions? _runOptions;
 
     [ObservableProperty]
     private CopyModeItem _selectedCopyMode;
@@ -100,6 +111,8 @@ public partial class MainWindowViewModel : ObservableObject
 
     [ObservableProperty]
     private bool _unbufferedIo;
+
+    private MainWindow? _window;
 
     [ObservableProperty]
     private BitmapImage? _windowIcon;
@@ -240,7 +253,8 @@ public partial class MainWindowViewModel : ObservableObject
             var optionsBuilder = new RoboCopyOptionsBuilder();
             if (dryRun)
                 optionsBuilder.DryRun();
-            optionsBuilder.WithSubDirs(!ExcludeEmptyDirsOption).SetCopyMode(SelectedCopyMode.Mode);
+            optionsBuilder.WithSubDirs(!ExcludeEmptyDirsOption).SetCopyMode(SelectedCopyMode.Mode)
+                .SetFileProperty(FileProperty);
             if (UnbufferedIo)
                 optionsBuilder.EnableUnbufferedIo();
             return optionsBuilder;
@@ -257,6 +271,32 @@ public partial class MainWindowViewModel : ObservableObject
     private async Task ExecuteCopy()
     {
         await Copy(false);
+    }
+
+    [RelayCommand]
+    private void OpenFilePropertySelectWindow()
+    {
+        var viewModel = new FilePropertySelectWindowViewModel(FileProperty);
+        var window = new FilePropertySelectWindow(viewModel);
+        if (_window != null)
+            window.Owner = _window;
+        window.ShowDialog();
+        FileProperty newProperty = 0;
+        if (viewModel.Data)
+            newProperty |= FileProperty.DATA;
+        if (viewModel.Attributes)
+            newProperty |= FileProperty.ATTRIBUTES;
+        if (viewModel.TimeStamp)
+            newProperty |= FileProperty.TIME_STAMP;
+        if (viewModel.AltStream)
+            newProperty |= FileProperty.ALT_STREAMS;
+        if (viewModel.Acl)
+            newProperty |= FileProperty.ACL;
+        if (viewModel.OwnerInformation)
+            newProperty |= FileProperty.OWNER_INFORMATION;
+        if (viewModel.AuditingInformation)
+            newProperty |= FileProperty.AUDITING_INFORMATION;
+        FileProperty = newProperty;
     }
 
     [RelayCommand]

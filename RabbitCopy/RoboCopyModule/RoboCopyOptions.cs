@@ -12,5 +12,8 @@ public class RoboCopyOptions
 
     public bool UnbufferedIo { get; set; }
 
+    public FileProperty FileProperties { get; set; } =
+        FileProperty.DATA | FileProperty.ATTRIBUTES | FileProperty.TIME_STAMP;
+
     public CopyMode CopyMode { get; set; } = CopyMode.DIFF_SIZE_DATE;
 }
