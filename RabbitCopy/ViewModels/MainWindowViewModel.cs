@@ -84,6 +84,30 @@ public partial class MainWindowViewModel : ObservableObject
     private ObservableCollection<CopyModeItem> _copyModeItems;
 
     [ObservableProperty]
+    private ObservableCollection<string> _throttlingUnits = ["k", "m", "g"];
+
+    [ObservableProperty]
+    private string _selectedIoMaxSizeThrottlingUnit = "k";
+
+    [ObservableProperty]
+    private uint _throttlingIoMaxSize;
+
+    [ObservableProperty]
+    private string _selectedIoRateThrottlingUnit = "k";
+
+    [ObservableProperty]
+    private uint _throttlingIoRate;
+
+    [ObservableProperty]
+    private string _selectedThresholdThrottlingUnit = "k";
+
+    [ObservableProperty]
+    private uint _throttlingThreshold;
+
+    [ObservableProperty]
+    private bool _enableThrottling;
+
+    [ObservableProperty]
     private ICollectionView _copyModeView;
 
     private CancellationTokenSource _copyProCancellationTokenSource = new();
@@ -272,6 +296,18 @@ public partial class MainWindowViewModel : ObservableObject
                 optionsBuilder.EnableUnbufferedIo();
             if (CreateOnly)
                 optionsBuilder.CreateOnly();
+            if (EnableThrottling)
+            {
+                string ioMaxSize = string.Empty, ioRate = string.Empty, threshold = string.Empty;
+                if (ThrottlingIoMaxSize > 0)
+                    ioMaxSize = $"{ThrottlingIoMaxSize}{SelectedIoMaxSizeThrottlingUnit}";
+                if (ThrottlingIoRate > 0)
+                    ioRate = $"{ThrottlingIoRate}{SelectedIoRateThrottlingUnit}";
+                if (ThrottlingThreshold > 0)
+                    threshold = $"{ThrottlingThreshold}{SelectedThresholdThrottlingUnit}";
+                optionsBuilder.WithThrottling(ioMaxSize, ioRate, threshold);
+            }
+
             return optionsBuilder;
         }
     }

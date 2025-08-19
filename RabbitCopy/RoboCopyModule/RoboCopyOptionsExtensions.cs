@@ -41,6 +41,18 @@ public static class RoboCopyOptionsExtensions
         return "/nocopy";
     }
 
+    private static string GetThrottlingArgs(RoboCopyOptions options)
+    {
+        List<string> args = [];
+        if (!string.IsNullOrEmpty(options.IoMaxSize))
+            args.Add($"/iomaxsize:{options.IoMaxSize}");
+        if (!string.IsNullOrEmpty(options.IoRate))
+            args.Add($"/iorate:{options.IoRate}");
+        if (!string.IsNullOrEmpty(options.Threshold))
+            args.Add($"/threshold:{options.Threshold}");
+        return string.Join(" ", args);
+    }
+
     public static string ToArgsString(this RoboCopyOptions options)
     {
         List<string> args = [];
@@ -62,6 +74,7 @@ public static class RoboCopyOptionsExtensions
             args.Add("/create");
         if (options.ThreadNum != 8)
             args.Add($"/mt:{options.ThreadNum}");
+        args.Add(GetThrottlingArgs(options));
 
         return string.Join(" ", args);
     }

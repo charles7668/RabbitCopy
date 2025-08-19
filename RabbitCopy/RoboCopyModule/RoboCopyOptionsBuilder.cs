@@ -49,6 +49,14 @@ public class RoboCopyOptionsBuilder
         return this;
     }
 
+    public RoboCopyOptionsBuilder SetThreadNum(uint threadNum)
+    {
+        if (threadNum is < 1 or > 128)
+            throw new ArgumentOutOfRangeException(nameof(threadNum), @"Thread number must be between 1 and 128.");
+        _robocopyOptions.ThreadNum = threadNum;
+        return this;
+    }
+
     public RoboCopyOptionsBuilder WithSubDirs(bool includeEmpty)
     {
         _robocopyOptions.IncludeSubDirs = true;
@@ -56,11 +64,11 @@ public class RoboCopyOptionsBuilder
         return this;
     }
 
-    public RoboCopyOptionsBuilder SetThreadNum(uint threadNum)
+    public RoboCopyOptionsBuilder WithThrottling(string ioMaxSize, string ioRate, string threshold)
     {
-        if (threadNum is < 1 or > 128)
-            throw new ArgumentOutOfRangeException(nameof(threadNum), @"Thread number must be between 1 and 128.");
-        _robocopyOptions.ThreadNum = threadNum;
+        _robocopyOptions.IoMaxSize = ioMaxSize;
+        _robocopyOptions.IoRate = ioRate;
+        _robocopyOptions.Threshold = threshold;
         return this;
     }
 }

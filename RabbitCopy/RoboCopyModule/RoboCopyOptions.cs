@@ -25,4 +25,10 @@ public class RoboCopyOptions
     public bool CreateOnly { get; set; }
 
     public uint ThreadNum { get; set; } = 8;
+
+    public string IoMaxSize { get; set; } = string.Empty;
+
+    public string IoRate { get; set; } = string.Empty;
+
+    public string Threshold { get; set; } = string.Empty;
 }

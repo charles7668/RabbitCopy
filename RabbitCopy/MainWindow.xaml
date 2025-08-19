@@ -60,9 +60,37 @@
                         <ColumnDefinition Width="300" />
                         <ColumnDefinition Width="*" />
                     </Grid.ColumnDefinitions>
-                    <hc:TextBox Height="200" IsReadOnly="True"
-                                Text="{Binding CopyLog}"
-                                TextWrapping="Wrap" />
+                    <hc:SimpleStackPanel>
+                        <hc:TextBox Height="200" IsReadOnly="True"
+                                    Text="{Binding CopyLog}"
+                                    TextWrapping="Wrap" />
+                        <GroupBox Header="Throttling" Style="{StaticResource GroupBoxTab}">
+                            <hc:SimpleStackPanel>
+                                <CheckBox IsChecked="{Binding EnableThrottling}">Enable Throttling</CheckBox>
+                                <hc:SimpleStackPanel Orientation="Horizontal">
+                                    <TextBlock VerticalAlignment="Center">io max size</TextBlock>
+                                    <hc:NumericUpDown Value="{Binding ThrottlingIoMaxSize}"></hc:NumericUpDown>
+                                    <ComboBox ItemsSource="{Binding ThrottlingUnits}"
+                                              SelectedItem="{Binding SelectedIoMaxSizeThrottlingUnit}">
+                                    </ComboBox>
+                                </hc:SimpleStackPanel>
+                                <hc:SimpleStackPanel Orientation="Horizontal">
+                                    <TextBlock VerticalAlignment="Center">io rate</TextBlock>
+                                    <hc:NumericUpDown Value="{Binding ThrottlingIoRate}"></hc:NumericUpDown>
+                                    <ComboBox ItemsSource="{Binding ThrottlingUnits}"
+                                              SelectedItem="{Binding SelectedIoRateThrottlingUnit}">
+                                    </ComboBox>
+                                </hc:SimpleStackPanel>
+                                <hc:SimpleStackPanel Orientation="Horizontal">
+                                    <TextBlock VerticalAlignment="Center">threshold</TextBlock>
+                                    <hc:NumericUpDown Value="{Binding ThrottlingThreshold}"></hc:NumericUpDown>
+                                    <ComboBox ItemsSource="{Binding ThrottlingUnits}"
+                                              SelectedItem="{Binding SelectedThresholdThrottlingUnit}">
+                                    </ComboBox>
+                                </hc:SimpleStackPanel>
+                            </hc:SimpleStackPanel>
+                        </GroupBox>
+                    </hc:SimpleStackPanel>
                     <Grid Grid.Column="1">
                         <Border Padding="10">
                             <Grid>
