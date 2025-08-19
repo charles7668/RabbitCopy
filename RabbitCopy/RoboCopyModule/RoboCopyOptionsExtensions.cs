@@ -1,4 +1,5 @@
 ﻿using System.Globalization;
+using System.IO;
 using RabbitCopy.Converters;
 using RabbitCopy.Enums;
 
@@ -19,6 +20,13 @@ public static class RoboCopyOptionsExtensions
             CopyMode.MOVE_NO_OVERWRITE => "/move /xo /xn /xc",
             _ => throw new ArgumentOutOfRangeException(nameof(mode), mode, null)
         };
+    }
+
+    private static string FileAttributesArgs(FileAttributes attr)
+    {
+        var converter = new FileAttributesToStringConverter();
+        var converted = (string?)converter.Convert(attr, typeof(string), null, CultureInfo.CurrentCulture);
+        return converted ?? "";
     }
 
     private static string FilePropertiesArgs(FileProperty fileProperty)
@@ -46,6 +54,10 @@ public static class RoboCopyOptionsExtensions
             args.Add("/j");
         args.Add(CopyModeArgs(options.CopyMode));
         args.Add(FilePropertiesArgs(options.FileProperties));
+        if (options.IncludeFileAttributes != FileAttributes.None)
+            args.Add($"/a+:{FileAttributesArgs(options.IncludeFileAttributes)}");
+        if (options.ExcludeFileAttributes != FileAttributes.None)
+            args.Add($"/a-:{FileAttributesArgs(options.ExcludeFileAttributes)}");
 
         return string.Join(" ", args);
     }

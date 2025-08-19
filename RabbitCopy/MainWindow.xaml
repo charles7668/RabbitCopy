@@ -71,6 +71,12 @@
                                     <RowDefinition Height="Auto" />
                                 </Grid.RowDefinitions>
                                 <ScrollViewer>
+                                    <ScrollViewer.Resources>
+                                        <converters:FilePropertyToStringConverter
+                                            x:Key="FilePropertyToStringConverter" />
+                                        <converters:FileAttributesToStringConverter
+                                            x:Key="FileAttributesToStringConverter" />
+                                    </ScrollViewer.Resources>
                                     <hc:UniformSpacingPanel Orientation="Vertical" HorizontalAlignment="Stretch"
                                                             Spacing="10">
                                         <ComboBox ItemsSource="{Binding CopyModeView}"
@@ -145,13 +151,19 @@
                                             Unbuffered I/O
                                         </CheckBox>
                                         <hc:SimpleStackPanel HorizontalAlignment="Left" Orientation="Horizontal">
-                                            <hc:SimpleStackPanel.Resources>
-                                                <converters:FilePropertyToStringConverter
-                                                    x:Key="FilePropertyToStringConverter" />
-                                            </hc:SimpleStackPanel.Resources>
                                             <Button Command="{Binding OpenFilePropertySelectWindowCommand}">File Property</Button>
                                             <TextBlock VerticalAlignment="Center"
                                                        Text="{Binding FileProperty, Converter={StaticResource FilePropertyToStringConverter}}" />
+                                        </hc:SimpleStackPanel>
+                                        <hc:SimpleStackPanel HorizontalAlignment="Left" Orientation="Horizontal">
+                                            <Button Command="{Binding OpenFileAttributesSelectWindowIncludeCommand}">Inc File Attributes</Button>
+                                            <TextBlock VerticalAlignment="Center"
+                                                       Text="{Binding IncFileAttributes, Converter={StaticResource FileAttributesToStringConverter}}" />
+                                        </hc:SimpleStackPanel>
+                                        <hc:SimpleStackPanel HorizontalAlignment="Left" Orientation="Horizontal">
+                                            <Button Command="{Binding OpenFileAttributesSelectWindowExcludeCommand}">Exc File Attributes</Button>
+                                            <TextBlock VerticalAlignment="Center"
+                                                       Text="{Binding ExcFileAttributes, Converter={StaticResource FileAttributesToStringConverter}}" />
                                         </hc:SimpleStackPanel>
                                     </hc:UniformSpacingPanel>
                                 </ScrollViewer>

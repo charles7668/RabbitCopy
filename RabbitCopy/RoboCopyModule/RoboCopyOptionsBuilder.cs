@@ -1,4 +1,5 @@
-﻿using RabbitCopy.Enums;
+﻿using System.IO;
+using RabbitCopy.Enums;
 
 namespace RabbitCopy.RoboCopyModule;
 
@@ -26,6 +27,13 @@ public class RoboCopyOptionsBuilder
     public RoboCopyOptionsBuilder SetCopyMode(CopyMode mode)
     {
         _robocopyOptions.CopyMode = mode;
+        return this;
+    }
+
+    public RoboCopyOptionsBuilder SetFileAttributes(FileAttributes include, FileAttributes exclude)
+    {
+        _robocopyOptions.IncludeFileAttributes = include;
+        _robocopyOptions.ExcludeFileAttributes = exclude;
         return this;
     }
 

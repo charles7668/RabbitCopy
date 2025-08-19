@@ -98,6 +98,12 @@ public partial class MainWindowViewModel : ObservableObject
     private FileProperty _fileProperty = FileProperty.DATA | FileProperty.ATTRIBUTES |
                                          FileProperty.TIME_STAMP;
 
+    [ObservableProperty]
+    private FileAttributes _incFileAttributes;
+
+    [ObservableProperty]
+    private FileAttributes _excFileAttributes;
+
     private float _progress;
 
     [ObservableProperty]
@@ -254,7 +260,7 @@ public partial class MainWindowViewModel : ObservableObject
             if (dryRun)
                 optionsBuilder.DryRun();
             optionsBuilder.WithSubDirs(!ExcludeEmptyDirsOption).SetCopyMode(SelectedCopyMode.Mode)
-                .SetFileProperty(FileProperty);
+                .SetFileProperty(FileProperty).SetFileAttributes(IncFileAttributes, ExcFileAttributes);
             if (UnbufferedIo)
                 optionsBuilder.EnableUnbufferedIo();
             return optionsBuilder;
@@ -271,6 +277,54 @@ public partial class MainWindowViewModel : ObservableObject
     private async Task ExecuteCopy()
     {
         await Copy(false);
+    }
+
+    FileAttributes GetSelectedFileAttributes(FileAttributesSelectWindowViewModel vm)
+    {
+        FileAttributes attributes = FileAttributes.None;
+        if (vm.ReadOnly)
+            attributes |= FileAttributes.ReadOnly;
+        if (vm.Archive)
+            attributes |= FileAttributes.Archive;
+        if (vm.System)
+            attributes |= FileAttributes.System;
+        if (vm.Hidden)
+            attributes |= FileAttributes.Hidden;
+        if (vm.Compressed)
+            attributes |= FileAttributes.Compressed;
+        if (vm.NotContentIndexed)
+            attributes |= FileAttributes.NotContentIndexed;
+        if (vm.Encrypted)
+            attributes |= FileAttributes.Encrypted;
+        if (vm.Temporary)
+            attributes |= FileAttributes.Temporary;
+        if (vm.Offline)
+            attributes |= FileAttributes.Offline;
+        return attributes;
+    }
+
+    [RelayCommand]
+    private void OpenFileAttributesSelectWindowInclude()
+    {
+        var vm = new FileAttributesSelectWindowViewModel(IncFileAttributes, false);
+        var window = new FileAttributesSelectWindow(vm)
+        {
+            Owner = _window
+        };
+        window.ShowDialog();
+        IncFileAttributes = GetSelectedFileAttributes(vm);
+    }
+
+    [RelayCommand]
+    private void OpenFileAttributesSelectWindowExclude()
+    {
+        var vm = new FileAttributesSelectWindowViewModel(ExcFileAttributes, true);
+        var window = new FileAttributesSelectWindow(vm)
+        {
+            Owner = _window
+        };
+        window.ShowDialog();
+        ExcFileAttributes = GetSelectedFileAttributes(vm);
     }
 
     [RelayCommand]

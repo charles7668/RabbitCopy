@@ -1,4 +1,5 @@
-﻿using RabbitCopy.Enums;
+﻿using System.IO;
+using RabbitCopy.Enums;
 
 namespace RabbitCopy.RoboCopyModule;
 
@@ -16,4 +17,8 @@ public class RoboCopyOptions
         FileProperty.DATA | FileProperty.ATTRIBUTES | FileProperty.TIME_STAMP;
 
     public CopyMode CopyMode { get; set; } = CopyMode.DIFF_SIZE_DATE;
+
+    public FileAttributes IncludeFileAttributes { get; set; }
+
+    public FileAttributes ExcludeFileAttributes { get; set; }
 }
