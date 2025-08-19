@@ -21,4 +21,8 @@ public class RoboCopyOptions
     public FileAttributes IncludeFileAttributes { get; set; }
 
     public FileAttributes ExcludeFileAttributes { get; set; }
+
+    public bool CreateOnly { get; set; }
+
+    public uint ThreadNum { get; set; } = 8;
 }

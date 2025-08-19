@@ -12,6 +12,12 @@ public class RoboCopyOptionsBuilder
         return _robocopyOptions;
     }
 
+    public RoboCopyOptionsBuilder CreateOnly()
+    {
+        _robocopyOptions.CreateOnly = true;
+        return this;
+    }
+
     public RoboCopyOptionsBuilder DryRun()
     {
         _robocopyOptions.DryRun = true;
@@ -47,6 +53,14 @@ public class RoboCopyOptionsBuilder
     {
         _robocopyOptions.IncludeSubDirs = true;
         _robocopyOptions.ExcludeEmptyDirs = !includeEmpty;
+        return this;
+    }
+
+    public RoboCopyOptionsBuilder SetThreadNum(uint threadNum)
+    {
+        if (threadNum is < 1 or > 128)
+            throw new ArgumentOutOfRangeException(nameof(threadNum), @"Thread number must be between 1 and 128.");
+        _robocopyOptions.ThreadNum = threadNum;
         return this;
     }
 }

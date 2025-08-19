@@ -123,6 +123,12 @@ public partial class MainWindowViewModel : ObservableObject
     [ObservableProperty]
     private BitmapImage? _windowIcon;
 
+    [ObservableProperty]
+    private bool _createOnly;
+
+    [ObservableProperty]
+    private uint _threadNum = 8;
+
     private async Task Copy(bool dryRun)
     {
         if (string.IsNullOrWhiteSpace(SrcText) || string.IsNullOrWhiteSpace(DestText))
@@ -260,9 +266,12 @@ public partial class MainWindowViewModel : ObservableObject
             if (dryRun)
                 optionsBuilder.DryRun();
             optionsBuilder.WithSubDirs(!ExcludeEmptyDirsOption).SetCopyMode(SelectedCopyMode.Mode)
-                .SetFileProperty(FileProperty).SetFileAttributes(IncFileAttributes, ExcFileAttributes);
+                .SetFileProperty(FileProperty).SetFileAttributes(IncFileAttributes, ExcFileAttributes)
+                .SetThreadNum(ThreadNum);
             if (UnbufferedIo)
                 optionsBuilder.EnableUnbufferedIo();
+            if (CreateOnly)
+                optionsBuilder.CreateOnly();
             return optionsBuilder;
         }
     }

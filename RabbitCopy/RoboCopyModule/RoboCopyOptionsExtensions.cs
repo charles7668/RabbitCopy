@@ -58,6 +58,10 @@ public static class RoboCopyOptionsExtensions
             args.Add($"/a+:{FileAttributesArgs(options.IncludeFileAttributes)}");
         if (options.ExcludeFileAttributes != FileAttributes.None)
             args.Add($"/a-:{FileAttributesArgs(options.ExcludeFileAttributes)}");
+        if (options.CreateOnly)
+            args.Add("/create");
+        if (options.ThreadNum != 8)
+            args.Add($"/mt:{options.ThreadNum}");
 
         return string.Join(" ", args);
     }

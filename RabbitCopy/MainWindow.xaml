@@ -165,6 +165,12 @@
                                             <TextBlock VerticalAlignment="Center"
                                                        Text="{Binding ExcFileAttributes, Converter={StaticResource FileAttributesToStringConverter}}" />
                                         </hc:SimpleStackPanel>
+                                        <CheckBox IsChecked="{Binding CreateOnly}">Create Only</CheckBox>
+                                        <hc:SimpleStackPanel Orientation="Horizontal">
+                                            <TextBlock VerticalAlignment="Center">Thread</TextBlock>
+                                            <hc:NumericUpDown Maximum="128" Minimum="1" Value="{Binding ThreadNum}" />
+                                            <TextBlock VerticalAlignment="Center">(1 - 128)</TextBlock>
+                                        </hc:SimpleStackPanel>
                                     </hc:UniformSpacingPanel>
                                 </ScrollViewer>
                                 <hc:SimpleStackPanel Grid.Row="1" Orientation="Horizontal" Margin="0,10,0,0">
