@@ -11,7 +11,23 @@
         mc:Ignorable="d"
         d:DataContext="{d:DesignInstance Type=viewModels:MainWindowViewModel, IsDesignTimeCreatable=True}"
         Icon="{Binding WindowIcon}"
+        TextElement.FontSize="10"
         Title="RabbitCopy" Height="500" Width="505">
+    <Window.Resources>
+        <Style TargetType="{x:Type Button}" BasedOn="{StaticResource ButtonBaseStyle}">
+            <Setter Property="FontSize" Value="10" />
+            <Setter Property="Foreground" Value="Black"></Setter>
+        </Style>
+        <Style TargetType="{x:Type CheckBox}" BasedOn="{StaticResource CheckBoxBaseStyle}">
+            <Setter Property="FontSize" Value="10" />
+        </Style>
+        <Style TargetType="{x:Type hc:NumericUpDown}" BasedOn="{StaticResource NumericUpDownBaseStyle}">
+            <Setter Property="FontSize" Value="10" />
+        </Style>
+        <Style TargetType="{x:Type ComboBox}" BasedOn="{StaticResource ComboBoxBaseStyle}">
+            <Setter Property="FontSize" Value="10" />
+        </Style>
+    </Window.Resources>
     <b:Interaction.Triggers>
         <b:EventTrigger EventName="Loaded">
             <b:InvokeCommandAction Command="{Binding WindowLoadedCommand}" />
