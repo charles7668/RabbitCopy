@@ -28,19 +28,26 @@ public partial class App
             {
                 Description = "List of files to copy"
             };
+            var openUIOption = new Option<bool>("--open")
+            {
+                Description = "Open the UI",
+            };
 
             rootCommand.Add(destOption);
             rootCommand.Add(filesOption);
+            rootCommand.Add(openUIOption);
 
             var parseResult = rootCommand.Parse(e.Args);
 
             var runOptions = new RunOptions
             {
                 DestPath = parseResult.GetValue(destOption),
-                SrcPaths = parseResult.GetValue(filesOption)
+                SrcPaths = parseResult.GetValue(filesOption),
+                OpenUI = parseResult.GetValue(openUIOption)
             };
 
-            if (runOptions.DestPath == null || runOptions.SrcPaths == null || runOptions.SrcPaths.Length == 0)
+            if ((runOptions.DestPath == null || runOptions.SrcPaths == null || runOptions.SrcPaths.Length == 0) &&
+                !runOptions.OpenUI)
             {
                 MessageBox.Show("Please provide a destination and at least one source file.", "Error",
                     MessageBoxButton.OK, MessageBoxImage.Error);

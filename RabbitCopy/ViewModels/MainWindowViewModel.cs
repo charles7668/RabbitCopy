@@ -496,8 +496,11 @@ public partial class MainWindowViewModel : ObservableObject
         if (_runOptions is null)
             return;
 
-        await ExecuteCopy();
-
-        ShutDown();
+        // if open ui is not specified, execute copy directly
+        if (!_runOptions.OpenUI)
+        {
+            await ExecuteCopy();
+            ShutDown();
+        }
     }
 }

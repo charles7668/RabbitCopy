@@ -32,7 +32,8 @@ public class ContextMenuExt : IShellExtInit, IContextMenu
     private readonly List<string> _srcArray = [];
     private IntPtr _menuBitmap;
     private const int COPY_MENU_ITEM_ID = 1;
-    private const int PASTE_MENU_ITEM_ID = 2;
+    private const int OPEN_UI_MENU_ITEM_ID = 2;
+    private const int PASTE_MENU_ITEM_ID = 3;
     private static List<string> _copyCandidate = [];
 
     private int RegisterMenuItem(uint id,
@@ -93,10 +94,12 @@ public class ContextMenuExt : IShellExtInit, IContextMenu
             return (HResult)Marshal.GetHRForLastWin32Error();
         var subMenu = CreatePopupMenu();
         RegisterMenuItem(0, idCmdFirst, "RabbitCopy", true, _menuBitmap, subMenu, menuItemCount++, hMenu);
-        if (_srcArray.Count > 0)
-        {
-            RegisterMenuItem(COPY_MENU_ITEM_ID, idCmdFirst, "Copy", true, _menuBitmap, IntPtr.Zero, 0, subMenu);
-        }
+
+        uint subMenuPos = 0;
+        var enableCopy = _srcArray.Count > 0;
+        RegisterMenuItem(COPY_MENU_ITEM_ID, idCmdFirst, "Copy", enableCopy, _menuBitmap, IntPtr.Zero, subMenuPos++, subMenu);
+        RegisterMenuItem(OPEN_UI_MENU_ITEM_ID, idCmdFirst, "GUI", enableCopy, _menuBitmap, IntPtr.Zero, subMenuPos++,
+            subMenu);
 
         var selectedSrc = "";
         if (_srcArray.Count == 1)
@@ -115,17 +118,18 @@ public class ContextMenuExt : IShellExtInit, IContextMenu
 
         if (!string.IsNullOrEmpty(selectedSrc) || (_srcArray.Count == 0 && _dstArray.Count == 1))
         {
-            RegisterMenuItem(PASTE_MENU_ITEM_ID, idCmdFirst, "Paste", true, _menuBitmap, IntPtr.Zero, 1, subMenu);
+            RegisterMenuItem(PASTE_MENU_ITEM_ID, idCmdFirst, "Paste", true, _menuBitmap, IntPtr.Zero, subMenuPos++,
+                subMenu);
         }
 
         sep = new MENUITEMINFO();
         sep.cbSize = (uint)Marshal.SizeOf(sep);
         sep.fMask = MIIM.MIIM_TYPE;
         sep.fType = MFT.MFT_SEPARATOR;
-        if (!InsertMenuItem(hMenu, menuItemCount++, true, ref sep))
+        if (!InsertMenuItem(hMenu, menuItemCount, true, ref sep))
             return (HResult)Marshal.GetHRForLastWin32Error();
 
-        return WinError.MAKE_HRESULT(WinError.SEVERITY_SUCCESS, 0, menuItemCount);
+        return WinError.MAKE_HRESULT(WinError.SEVERITY_SUCCESS, 0, subMenuPos + 1);
     }
 
     public void InvokeCommand(IntPtr pici)
@@ -148,7 +152,7 @@ public class ContextMenuExt : IShellExtInit, IContextMenu
             {
                 try
                 {
-                    FileAttributes attributes = File.GetAttributes(s);
+                    var attributes = File.GetAttributes(s);
                     if (attributes.HasFlag(FileAttributes.Directory))
                         return s + "\\";
                     return s;
@@ -160,6 +164,36 @@ public class ContextMenuExt : IShellExtInit, IContextMenu
             }).Where(s => s != "");
             var temp = src.ToList().ConvertAll(input => $"--files {input}");
             string[] args = ["--dest", _dstArray[0], string.Join(" ", temp)];
+            ProcessStartInfo startInfo = new()
+            {
+                FileName = exePath,
+                Arguments = string.Join(" ", args),
+                UseShellExecute = true,
+                CreateNoWindow = true
+            };
+            Process.Start(startInfo);
+        }
+        else if (ici.Value.verb == OPEN_UI_MENU_ITEM_ID)
+        {
+            if (_copyCandidate.Count == 0 || location == null)
+                return;
+            var exePath = Path.Combine(location, "RabbitCopy.exe");
+            var src = _copyCandidate.Select(s =>
+            {
+                try
+                {
+                    var attributes = File.GetAttributes(s);
+                    if (attributes.HasFlag(FileAttributes.Directory))
+                        return s + "\\";
+                    return s;
+                }
+                catch
+                {
+                    return "";
+                }
+            }).Where(s => s != "");
+            var temp = src.ToList().ConvertAll(input => $"--files {input}");
+            string[] args = ["--open", string.Join(" ", temp)];
             ProcessStartInfo startInfo = new()
             {
                 FileName = exePath,
