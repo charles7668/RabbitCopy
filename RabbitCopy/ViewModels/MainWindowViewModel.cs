@@ -250,7 +250,7 @@ public partial class MainWindowViewModel : ObservableObject
             {
                 if (cancellationToken.IsCancellationRequested)
                     return;
-                var options = CreateDefaultBuilder().Build();
+                var options = CreateDefaultBuilder().WithSubDirs(!ExcludeEmptyDirsOption).Build();
                 var filterNames = FilterName.Split(';');
                 if (string.IsNullOrWhiteSpace(FilterName) || !EnableFilterName)
                     filterNames = ["*.*"];
@@ -306,7 +306,7 @@ public partial class MainWindowViewModel : ObservableObject
             var optionsBuilder = new RoboCopyOptionsBuilder();
             if (dryRun)
                 optionsBuilder.DryRun();
-            optionsBuilder.WithSubDirs(!ExcludeEmptyDirsOption).SetCopyMode(SelectedCopyMode.Mode)
+            optionsBuilder.SetCopyMode(SelectedCopyMode.Mode)
                 .SetFileProperty(FileProperty).SetFileAttributes(IncFileAttributes, ExcFileAttributes)
                 .SetThreadNum(ThreadNum);
             if (UnbufferedIo)
