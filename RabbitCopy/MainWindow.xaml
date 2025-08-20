@@ -12,7 +12,7 @@
         d:DataContext="{d:DesignInstance Type=viewModels:MainWindowViewModel, IsDesignTimeCreatable=True}"
         Icon="{Binding WindowIcon}"
         TextElement.FontSize="10"
-        Background="DarkGray"
+        Background="GhostWhite"
         Title="RabbitCopy" Height="600" Width="505">
     <Window.Resources>
         <Style TargetType="{x:Type Button}" BasedOn="{StaticResource ButtonBaseStyle}">
@@ -85,7 +85,7 @@
                         <hc:TextBox Height="200" IsReadOnly="True"
                                     Text="{Binding CopyLog}"
                                     TextWrapping="Wrap" />
-                        <GroupBox Background="DarkGray" Header="Throttling" Style="{StaticResource GroupBoxTab}">
+                        <GroupBox Background="GhostWhite" Header="Throttling" Style="{StaticResource GroupBoxTab}">
                             <hc:SimpleStackPanel>
                                 <CheckBox IsChecked="{Binding EnableThrottling}">Enable Throttling</CheckBox>
                                 <hc:SimpleStackPanel Orientation="Horizontal">
@@ -209,7 +209,7 @@
                                         <hc:SimpleStackPanel Orientation="Horizontal">
                                             <TextBlock VerticalAlignment="Center">Thread</TextBlock>
                                             <hc:NumericUpDown Maximum="128" Minimum="1" Value="{Binding ThreadNum}"
-                                                              Width="60"/>
+                                                              Width="60" />
                                             <TextBlock VerticalAlignment="Center">(1 - 128)</TextBlock>
                                         </hc:SimpleStackPanel>
                                     </hc:UniformSpacingPanel>
