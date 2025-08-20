@@ -13,6 +13,7 @@
         Icon="{Binding WindowIcon}"
         TextElement.FontSize="10"
         Background="GhostWhite"
+        WindowStartupLocation="CenterScreen"
         Title="RabbitCopy" Height="600" Width="505">
     <Window.Resources>
         <Style TargetType="{x:Type Button}" BasedOn="{StaticResource ButtonBaseStyle}">
