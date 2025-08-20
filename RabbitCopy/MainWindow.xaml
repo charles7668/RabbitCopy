@@ -77,6 +77,11 @@
                              Text="{Binding DestText}"
                              VerticalAlignment="Center" />
                 </Grid>
+                <hc:SimpleStackPanel Orientation="Horizontal">
+                    <TextBlock>
+                        Progress : <TextBlock Text="{Binding ProgressText}" />
+                    </TextBlock>
+                </hc:SimpleStackPanel>
                 <Grid>
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="300" />
@@ -224,11 +229,6 @@
                         </Border>
                     </Grid>
                 </Grid>
-                <hc:SimpleStackPanel Orientation="Horizontal">
-                    <TextBlock>
-                        Progress : <TextBlock Text="{Binding ProgressText}" />
-                    </TextBlock>
-                </hc:SimpleStackPanel>
                 <hc:SimpleStackPanel Orientation="Horizontal" Margin="0,10,0,0">
                     <CheckBox IsChecked="{Binding EnableFilterFileAttributes}">Filter File Attribute</CheckBox>
                     <Button Margin="10,0,0,0"
