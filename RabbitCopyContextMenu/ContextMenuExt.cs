@@ -31,9 +31,40 @@ public class ContextMenuExt : IShellExtInit, IContextMenu
     private readonly List<string> _dstArray = [];
     private readonly List<string> _srcArray = [];
     private IntPtr _menuBitmap;
-    private const int COPY_MENU_ITEM_ID = 0;
-    private const int PASTE_MENU_ITEM_ID = 1;
+    private const int COPY_MENU_ITEM_ID = 1;
+    private const int PASTE_MENU_ITEM_ID = 2;
     private static List<string> _copyCandidate = [];
+
+    private int RegisterMenuItem(uint id,
+        uint idCmdFirst,
+        string text,
+        bool enabled,
+        IntPtr bitmap,
+        IntPtr subMenu,
+        uint position,
+        IntPtr registerTo)
+    {
+        var sub = new MENUITEMINFO();
+        sub.cbSize = (uint)Marshal.SizeOf(sub);
+
+        var m = MIIM.MIIM_STRING | MIIM.MIIM_FTYPE | MIIM.MIIM_ID | MIIM.MIIM_STATE;
+        if (bitmap != IntPtr.Zero)
+            m |= MIIM.MIIM_BITMAP;
+        if (subMenu != IntPtr.Zero)
+            m |= MIIM.MIIM_SUBMENU;
+        sub.fMask = m;
+
+        sub.wID = idCmdFirst + id;
+        sub.fType = MFT.MFT_STRING;
+        sub.dwTypeData = text;
+        sub.hSubMenu = subMenu;
+        sub.fState = enabled ? MFS.MFS_ENABLED : MFS.MFS_DISABLED;
+        sub.hbmpItem = bitmap;
+
+        if (!InsertMenuItem(registerTo, position, true, ref sub))
+            return Marshal.GetHRForLastWin32Error();
+        return 0;
+    }
 
     /// <summary>
     /// Queries the context menu for the specified menu handle and command range.
@@ -60,20 +91,11 @@ public class ContextMenuExt : IShellExtInit, IContextMenu
         sep.fType = MFT.MFT_SEPARATOR;
         if (!InsertMenuItem(hMenu, menuItemCount++, true, ref sep))
             return (HResult)Marshal.GetHRForLastWin32Error();
+        var subMenu = CreatePopupMenu();
+        RegisterMenuItem(0, idCmdFirst, "RabbitCopy", true, _menuBitmap, subMenu, menuItemCount++, hMenu);
         if (_srcArray.Count > 0)
         {
-            MENUITEMINFO menuItemInfo = new()
-            {
-                fMask = MIIM.MIIM_ID | MIIM.MIIM_STRING | MIIM.MIIM_FTYPE | MIIM.MIIM_BITMAP,
-                wID = idCmdFirst + COPY_MENU_ITEM_ID,
-                fType = MFT.MFT_STRING,
-                dwTypeData = "Copy",
-                cch = 11,
-                cbSize = (uint)Marshal.SizeOf<MENUITEMINFO>(),
-                hbmpItem = _menuBitmap
-            };
-            if (!InsertMenuItem(hMenu, menuItemCount++, true, ref menuItemInfo))
-                return (HResult)Marshal.GetHRForLastWin32Error();
+            RegisterMenuItem(COPY_MENU_ITEM_ID, idCmdFirst, "Copy", true, _menuBitmap, IntPtr.Zero, 0, subMenu);
         }
 
         var selectedSrc = "";
@@ -93,18 +115,7 @@ public class ContextMenuExt : IShellExtInit, IContextMenu
 
         if (!string.IsNullOrEmpty(selectedSrc) || (_srcArray.Count == 0 && _dstArray.Count == 1))
         {
-            MENUITEMINFO menuItemInfo = new()
-            {
-                fMask = MIIM.MIIM_ID | MIIM.MIIM_STRING | MIIM.MIIM_FTYPE | MIIM.MIIM_BITMAP,
-                wID = idCmdFirst + PASTE_MENU_ITEM_ID,
-                fType = MFT.MFT_STRING,
-                dwTypeData = "Paste",
-                cch = 11,
-                cbSize = (uint)Marshal.SizeOf<MENUITEMINFO>(),
-                hbmpItem = _menuBitmap
-            };
-            if (!InsertMenuItem(hMenu, menuItemCount++, true, ref menuItemInfo))
-                return (HResult)Marshal.GetHRForLastWin32Error();
+            RegisterMenuItem(PASTE_MENU_ITEM_ID, idCmdFirst, "Paste", true, _menuBitmap, IntPtr.Zero, 1, subMenu);
         }
 
         sep = new MENUITEMINFO();

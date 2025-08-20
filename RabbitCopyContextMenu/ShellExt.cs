@@ -179,6 +179,9 @@ public class ShellExt
     [DllImport("gdi32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
     public static extern bool DeleteObject(IntPtr hObject);
 
+    [DllImport("user32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
+    public static extern IntPtr CreatePopupMenu();
+
     [Flags]
     public enum CMIC : uint
     {
