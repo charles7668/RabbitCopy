@@ -35,8 +35,8 @@
             x:Key="FileAttributesToStringConverter" />
     </Window.Resources>
     <b:Interaction.Triggers>
-        <b:EventTrigger EventName="Loaded">
-            <b:InvokeCommandAction Command="{Binding WindowLoadedCommand}" />
+        <b:EventTrigger EventName="ContentRendered">
+            <b:InvokeCommandAction Command="{Binding WindowContentRenderedCommand}" />
         </b:EventTrigger>
         <b:EventTrigger EventName="Closing">
             <b:InvokeCommandAction Command="{Binding WindowClosingCommand}" />

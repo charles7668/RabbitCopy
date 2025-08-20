@@ -490,7 +490,7 @@ public partial class MainWindowViewModel : ObservableObject
     }
 
     [RelayCommand]
-    private async Task WindowLoaded()
+    private async Task WindowContentRendered()
     {
         // normal launch
         if (_runOptions is null)
