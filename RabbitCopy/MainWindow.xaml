@@ -242,7 +242,7 @@
                     <CheckBox IsChecked="{Binding EnableFilterName}">Filter Name</CheckBox>
                     <ComboBox Margin="10,0,10,0" IsEditable="True" Width="200"
                               Text="{Binding FilterName}" />
-                    <Button>...</Button>
+                    <Button Command="{Binding OpenFilterFileNameSettingWindowCommand}">...</Button>
                 </hc:SimpleStackPanel>
             </StackPanel>
         </ScrollViewer>

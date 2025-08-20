@@ -77,6 +77,8 @@ public partial class MainWindowViewModel : ObservableObject
 
     private readonly RunOptions? _runOptions;
 
+    private readonly MainWindow? _window;
+
     [ObservableProperty]
     private string _copyLog = string.Empty;
 
@@ -84,36 +86,27 @@ public partial class MainWindowViewModel : ObservableObject
     private ObservableCollection<CopyModeItem> _copyModeItems;
 
     [ObservableProperty]
-    private ObservableCollection<string> _throttlingUnits = ["k", "m", "g"];
-
-    [ObservableProperty]
-    private string _selectedIoMaxSizeThrottlingUnit = "k";
-
-    [ObservableProperty]
-    private uint _throttlingIoMaxSize;
-
-    [ObservableProperty]
-    private string _selectedIoRateThrottlingUnit = "k";
-
-    [ObservableProperty]
-    private uint _throttlingIoRate;
-
-    [ObservableProperty]
-    private string _selectedThresholdThrottlingUnit = "k";
-
-    [ObservableProperty]
-    private uint _throttlingThreshold;
-
-    [ObservableProperty]
-    private bool _enableThrottling;
-
-    [ObservableProperty]
     private ICollectionView _copyModeView;
 
     private CancellationTokenSource _copyProCancellationTokenSource = new();
 
     [ObservableProperty]
+    private bool _createOnly;
+
+    [ObservableProperty]
     private string _destText = string.Empty;
+
+    [ObservableProperty]
+    private bool _enableFilterFileAttributes;
+
+    [ObservableProperty]
+    private bool _enableFilterName;
+
+    [ObservableProperty]
+    private bool _enableThrottling;
+
+    [ObservableProperty]
+    private FileAttributes _excFileAttributes;
 
     [ObservableProperty]
     private bool _excludeEmptyDirsOption;
@@ -123,22 +116,13 @@ public partial class MainWindowViewModel : ObservableObject
                                          FileProperty.TIME_STAMP;
 
     [ObservableProperty]
-    private FileAttributes _incFileAttributes;
-
-    [ObservableProperty]
-    private FileAttributes _excFileAttributes;
-
-    [ObservableProperty]
     private FileAttributes _filterFileAttributes;
 
     [ObservableProperty]
-    private bool _enableFilterFileAttributes;
+    private string _filterName = string.Empty;
 
     [ObservableProperty]
-    private string _filterName;
-
-    [ObservableProperty]
-    private bool _enableFilterName;
+    private FileAttributes _incFileAttributes;
 
     private float _progress;
 
@@ -149,21 +133,37 @@ public partial class MainWindowViewModel : ObservableObject
     private CopyModeItem _selectedCopyMode;
 
     [ObservableProperty]
+    private string _selectedIoMaxSizeThrottlingUnit = "k";
+
+    [ObservableProperty]
+    private string _selectedIoRateThrottlingUnit = "k";
+
+    [ObservableProperty]
+    private string _selectedThresholdThrottlingUnit = "k";
+
+    [ObservableProperty]
     private string _srcText = string.Empty;
+
+    [ObservableProperty]
+    private uint _threadNum = 8;
+
+    [ObservableProperty]
+    private uint _throttlingIoMaxSize;
+
+    [ObservableProperty]
+    private uint _throttlingIoRate;
+
+    [ObservableProperty]
+    private uint _throttlingThreshold;
+
+    [ObservableProperty]
+    private ObservableCollection<string> _throttlingUnits = ["k", "m", "g"];
 
     [ObservableProperty]
     private bool _unbufferedIo;
 
-    private MainWindow? _window;
-
     [ObservableProperty]
     private BitmapImage? _windowIcon;
-
-    [ObservableProperty]
-    private bool _createOnly;
-
-    [ObservableProperty]
-    private uint _threadNum = 8;
 
     private async Task Copy(bool dryRun)
     {
@@ -251,7 +251,12 @@ public partial class MainWindowViewModel : ObservableObject
                 if (cancellationToken.IsCancellationRequested)
                     return;
                 var options = CreateDefaultBuilder().Build();
-                await roboCopy.StartCopy(dirCopy, destDir, ["*.*"], options, cancellationToken);
+                var filterNames = FilterName.Split(';');
+                if (string.IsNullOrWhiteSpace(FilterName) || !EnableFilterName)
+                    filterNames = ["*.*"];
+                else
+                    filterNames = filterNames.Select(x => "\"" + x + "\"").ToArray();
+                await roboCopy.StartCopy(dirCopy, destDir, filterNames, options, cancellationToken);
                 OnProgressUpdate(100);
                 completeTaskCount++;
             }
@@ -321,9 +326,7 @@ public partial class MainWindowViewModel : ObservableObject
             }
 
             if (EnableFilterFileAttributes)
-            {
                 optionsBuilder.WithFileAttributesFilter(FilterFileAttributes);
-            }
 
             return optionsBuilder;
         }
@@ -341,9 +344,9 @@ public partial class MainWindowViewModel : ObservableObject
         await Copy(false);
     }
 
-    FileAttributes GetSelectedFileAttributes(FileAttributesSelectWindowViewModel vm)
+    private FileAttributes GetSelectedFileAttributes(FileAttributesSelectWindowViewModel vm)
     {
-        FileAttributes attributes = FileAttributes.None;
+        var attributes = FileAttributes.None;
         if (vm.ReadOnly)
             attributes |= FileAttributes.ReadOnly;
         if (vm.Archive)
@@ -366,18 +369,6 @@ public partial class MainWindowViewModel : ObservableObject
     }
 
     [RelayCommand]
-    private void OpenFileAttributesSelectWindowInclude()
-    {
-        var vm = new FileAttributesSelectWindowViewModel(IncFileAttributes, false);
-        var window = new FileAttributesSelectWindow(vm)
-        {
-            Owner = _window
-        };
-        window.ShowDialog();
-        IncFileAttributes = GetSelectedFileAttributes(vm);
-    }
-
-    [RelayCommand]
     private void OpenFileAttributesSelectWindowExclude()
     {
         var vm = new FileAttributesSelectWindowViewModel(ExcFileAttributes, true);
@@ -390,15 +381,15 @@ public partial class MainWindowViewModel : ObservableObject
     }
 
     [RelayCommand]
-    private void OpenFilterFileAttributesSelectWindow()
+    private void OpenFileAttributesSelectWindowInclude()
     {
-        var vm = new FileAttributesSelectWindowViewModel(FilterFileAttributes, true);
+        var vm = new FileAttributesSelectWindowViewModel(IncFileAttributes, false);
         var window = new FileAttributesSelectWindow(vm)
         {
             Owner = _window
         };
         window.ShowDialog();
-        FilterFileAttributes = GetSelectedFileAttributes(vm);
+        IncFileAttributes = GetSelectedFileAttributes(vm);
     }
 
     [RelayCommand]
@@ -425,6 +416,32 @@ public partial class MainWindowViewModel : ObservableObject
         if (viewModel.AuditingInformation)
             newProperty |= FileProperty.AUDITING_INFORMATION;
         FileProperty = newProperty;
+    }
+
+    [RelayCommand]
+    private void OpenFilterFileAttributesSelectWindow()
+    {
+        var vm = new FileAttributesSelectWindowViewModel(FilterFileAttributes, true);
+        var window = new FileAttributesSelectWindow(vm)
+        {
+            Owner = _window
+        };
+        window.ShowDialog();
+        FilterFileAttributes = GetSelectedFileAttributes(vm);
+    }
+
+    [RelayCommand]
+    private void OpenFilterFileNameSettingWindow()
+    {
+        var initialText = string.Join('\n', FilterName.Split(';'));
+        var vm = new FilterFileNameSettingWindowViewModel(initialText);
+        var window = new FilterFileNameSettingWindow(vm)
+        {
+            Owner = _window
+        };
+        window.ShowDialog();
+        var result = string.Join(";", vm.FilterItemText.Replace("\r", "").Split('\n'));
+        FilterName = result;
     }
 
     [RelayCommand]
