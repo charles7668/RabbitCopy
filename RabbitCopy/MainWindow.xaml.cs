@@ -16,6 +16,8 @@ public partial class MainWindow
 
         WeakReferenceMessenger.Default.Register<ShutdownRequestMessage>(
             this, (_, _) => Close());
+        WeakReferenceMessenger.Default.Register<ScrollToEndRequestMessage>(
+            this, (_, _) => Dispatcher.BeginInvoke(() => { TxtLog.ScrollToEnd(); }));
     }
 
     public MainWindow()
@@ -25,5 +27,7 @@ public partial class MainWindow
 
         WeakReferenceMessenger.Default.Register<ShutdownRequestMessage>(
             this, (_, _) => { });
+        WeakReferenceMessenger.Default.Register<ScrollToEndRequestMessage>(
+            this, (_, _) => Dispatcher.BeginInvoke(() => { TxtLog.ScrollToEnd(); }));
     }
 }

@@ -274,6 +274,7 @@ public partial class MainWindowViewModel : ObservableObject
             }
         }, TaskCreationOptions.LongRunning).Unwrap();
 
+        WeakReferenceMessenger.Default.Send<ScrollToEndRequestMessage>();
 
         return;
 
@@ -299,6 +300,7 @@ public partial class MainWindowViewModel : ObservableObject
             }
 
             CopyLog += $"{output}\n";
+            WeakReferenceMessenger.Default.Send<ScrollToEndRequestMessage>();
         }
 
         RoboCopyOptionsBuilder CreateDefaultBuilder()

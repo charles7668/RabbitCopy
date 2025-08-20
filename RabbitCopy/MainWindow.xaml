@@ -83,7 +83,8 @@
                         <ColumnDefinition Width="*" />
                     </Grid.ColumnDefinitions>
                     <hc:SimpleStackPanel>
-                        <hc:TextBox Height="200" IsReadOnly="True"
+                        <hc:TextBox Name="TxtLog"
+                                    Height="200" IsReadOnly="True"
                                     Text="{Binding CopyLog}"
                                     TextWrapping="Wrap" />
                         <GroupBox Background="GhostWhite" Header="Throttling" Style="{StaticResource GroupBoxTab}">
