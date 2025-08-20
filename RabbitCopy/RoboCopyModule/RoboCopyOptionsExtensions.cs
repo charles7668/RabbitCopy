@@ -75,6 +75,8 @@ public static class RoboCopyOptionsExtensions
         if (options.ThreadNum != 8)
             args.Add($"/mt:{options.ThreadNum}");
         args.Add(GetThrottlingArgs(options));
+        if (options.FileAttributesFilter != FileAttributes.None)
+            args.Add($"/ia:{FileAttributesArgs(options.FileAttributesFilter)}");
 
         return string.Join(" ", args);
     }

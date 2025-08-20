@@ -128,6 +128,18 @@ public partial class MainWindowViewModel : ObservableObject
     [ObservableProperty]
     private FileAttributes _excFileAttributes;
 
+    [ObservableProperty]
+    private FileAttributes _filterFileAttributes;
+
+    [ObservableProperty]
+    private bool _enableFilterFileAttributes;
+
+    [ObservableProperty]
+    private string _filterName;
+
+    [ObservableProperty]
+    private bool _enableFilterName;
+
     private float _progress;
 
     [ObservableProperty]
@@ -308,6 +320,11 @@ public partial class MainWindowViewModel : ObservableObject
                 optionsBuilder.WithThrottling(ioMaxSize, ioRate, threshold);
             }
 
+            if (EnableFilterFileAttributes)
+            {
+                optionsBuilder.WithFileAttributesFilter(FilterFileAttributes);
+            }
+
             return optionsBuilder;
         }
     }
@@ -370,6 +387,18 @@ public partial class MainWindowViewModel : ObservableObject
         };
         window.ShowDialog();
         ExcFileAttributes = GetSelectedFileAttributes(vm);
+    }
+
+    [RelayCommand]
+    private void OpenFilterFileAttributesSelectWindow()
+    {
+        var vm = new FileAttributesSelectWindowViewModel(FilterFileAttributes, true);
+        var window = new FileAttributesSelectWindow(vm)
+        {
+            Owner = _window
+        };
+        window.ShowDialog();
+        FilterFileAttributes = GetSelectedFileAttributes(vm);
     }
 
     [RelayCommand]

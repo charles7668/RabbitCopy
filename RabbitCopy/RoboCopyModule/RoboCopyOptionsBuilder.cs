@@ -57,6 +57,12 @@ public class RoboCopyOptionsBuilder
         return this;
     }
 
+    public RoboCopyOptionsBuilder WithFileAttributesFilter(FileAttributes filter)
+    {
+        _robocopyOptions.FileAttributesFilter = filter;
+        return this;
+    }
+
     public RoboCopyOptionsBuilder WithSubDirs(bool includeEmpty)
     {
         _robocopyOptions.IncludeSubDirs = true;
