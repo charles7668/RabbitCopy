@@ -23,7 +23,7 @@ public partial class FileAttributesSelectWindowViewModel : ObservableObject
         _notContentIndexed = attributes.HasFlag(FileAttributes.NotContentIndexed);
         _temporary = attributes.HasFlag(FileAttributes.Temporary);
         _offline = attributes.HasFlag(FileAttributes.Offline);
-        if (!excludeMode)
+        if (excludeMode)
         {
             _offlineVisibility = Visibility.Visible;
             _offline = false;
