@@ -1,5 +1,6 @@
 ﻿using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.IO;
 using System.Text.RegularExpressions;
 using System.Windows;
@@ -444,6 +445,23 @@ public partial class MainWindowViewModel : ObservableObject
         window.ShowDialog();
         var result = string.Join(";", vm.FilterItemText.Replace("\r", "").Split('\n'));
         FilterName = result;
+    }
+
+    [RelayCommand]
+    private void OpenShellExtensionInstaller()
+    {
+        ProcessStartInfo startInfo = new()
+        {
+            FileName = "RabbitCopyInstaller.exe"
+        };
+        try
+        {
+            Process.Start(startInfo);
+        }
+        catch (Exception e)
+        {
+            MessageBox.Show($"Failed to open installer: {e.Message}", "Error", icon: MessageBoxImage.Error);
+        }
     }
 
     [RelayCommand]

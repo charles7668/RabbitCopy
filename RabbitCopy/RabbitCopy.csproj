@@ -26,6 +26,11 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\RabbitCopyContextMenu\RabbitCopyContextMenu.csproj" />
+    <ProjectReference Include="..\RabbitCopyInstaller\RabbitCopyInstaller.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Compile Update="IconResource.Designer.cs">
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>
