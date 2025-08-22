@@ -4,19 +4,48 @@ using System.Diagnostics;
 using System.IO;
 using System.Text.RegularExpressions;
 using System.Windows;
+using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Media.Imaging;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
 using JetBrains.Annotations;
+using Microsoft.Extensions.DependencyInjection;
 using RabbitCopy.Enums;
 using RabbitCopy.Helper;
 using RabbitCopy.Models;
 using RabbitCopy.RoboCopyModule;
+using RabbitCopy.Services;
 using MessageBox = HandyControl.Controls.MessageBox;
 
 namespace RabbitCopy.ViewModels;
+
+[method: UsedImplicitly]
+public partial class ConfigIdentityChildCommandViewModel(string text, Action<ConfigIdentityViewModel>? execute)
+    : ObservableObject
+{
+    [ObservableProperty]
+    private string _text = text;
+
+    [RelayCommand]
+    private void Execute(ConfigIdentityViewModel vm)
+    {
+        execute?.Invoke(vm);
+    }
+}
+
+public partial class ConfigIdentityViewModel : ObservableObject
+{
+    [ObservableProperty]
+    private List<ConfigIdentityChildCommandViewModel> _childCommandViewModels = [];
+
+    [ObservableProperty]
+    private string _guid = string.Empty;
+
+    [ObservableProperty]
+    private string _name = string.Empty;
+}
 
 public partial class MainWindowViewModel : ObservableObject
 {
@@ -79,6 +108,9 @@ public partial class MainWindowViewModel : ObservableObject
     private readonly RunOptions? _runOptions;
 
     private readonly MainWindow? _window;
+
+    [ObservableProperty]
+    private ObservableCollection<ConfigIdentityViewModel> _configIdentities = [];
 
     [ObservableProperty]
     private string _copyLog = string.Empty;
@@ -174,7 +206,7 @@ public partial class MainWindowViewModel : ObservableObject
             return;
         }
 
-        var srcList = SrcText.Replace("\r", "").Split('\n').ToList();
+        List<string> srcList = SrcText.Replace("\r", "").Split('\n').ToList();
         var srcGroup = new Dictionary<string, List<string>>();
         HashSet<string> dirCopyList = [];
         try
@@ -216,7 +248,9 @@ public partial class MainWindowViewModel : ObservableObject
         catch (Exception e)
         {
             if (e is DirectoryNotFoundException or FileNotFoundException)
+            {
                 needCreate = true;
+            }
             else
             {
                 MessageBox.Show(e.Message, "Error", icon: MessageBoxImage.Error);
@@ -262,12 +296,12 @@ public partial class MainWindowViewModel : ObservableObject
                 completeTaskCount++;
             }
 
-            foreach (var group in srcGroup)
+            foreach (KeyValuePair<string, List<string>> group in srcGroup)
             {
                 if (cancellationToken.IsCancellationRequested)
                     return;
                 var dirPath = group.Key;
-                var fileList = group.Value;
+                List<string> fileList = group.Value;
                 var options = CreateDefaultBuilder().Build();
                 await roboCopy.StartCopy(dirPath, destDir, fileList, options, cancellationToken);
                 OnProgressUpdate(100);
@@ -292,10 +326,8 @@ public partial class MainWindowViewModel : ObservableObject
                 var pattern = new Regex("^\\s?(\\d+.\\d)%");
                 var match = pattern.Match(output);
                 if (match.Success)
-                {
                     if (float.TryParse(match.Groups[1].Value, out var progress))
                         OnProgressUpdate(progress);
-                }
 
                 return;
             }
@@ -369,6 +401,51 @@ public partial class MainWindowViewModel : ObservableObject
         if (vm.Offline)
             attributes |= FileAttributes.Offline;
         return attributes;
+    }
+
+    [RelayCommand]
+    private void LoadConfig(ConfigIdentityViewModel identityVm)
+    {
+        var configService = App.ServiceProvider.GetRequiredService<ConfigService>();
+        try
+        {
+            var config = configService.LoadConfig(new ConfigIdentity
+            {
+                Name = identityVm.Name,
+                Guid = identityVm.Guid
+            });
+            LoadFromConfig(config);
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show($"Failed to load config file: {ex.Message}", "Error", icon: MessageBoxImage.Error);
+        }
+    }
+
+    private void LoadFromConfig(Config config)
+    {
+#pragma warning disable MVVMTK0034
+        _createOnly = config.CreateOnly;
+        _enableFilterFileAttributes = config.EnableFilterFileAttributes;
+        _enableFilterName = config.EnableFilterName;
+        _enableThrottling = config.EnableThrottling;
+        _excFileAttributes = config.ExcFileAttributes;
+        _excludeEmptyDirsOption = config.ExcludeEmptyDirsOption;
+        _fileProperty = config.FileProperty;
+        _filterFileAttributes = config.FilterFileAttributes;
+        _filterName = config.FilterName;
+        _incFileAttributes = config.IncFileAttributes;
+        _selectedCopyMode = CopyModeItems.First(x => x == config.SelectedCopyMode);
+        _selectedIoMaxSizeThrottlingUnit = config.SelectedIoMaxSizeThrottlingUnit;
+        _selectedIoRateThrottlingUnit = config.SelectedIoRateThrottlingUnit;
+        _selectedThresholdThrottlingUnit = config.SelectedThresholdThrottlingUnit;
+        _threadNum = config.ThreadNum;
+        _throttlingIoMaxSize = config.ThrottlingIoMaxSize;
+        _throttlingIoRate = config.ThrottlingIoRate;
+        _throttlingThreshold = config.ThrottlingThreshold;
+        _unbufferedIo = config.UnbufferedIo;
+#pragma warning restore MVVMTK0034
+        OnPropertyChanged(string.Empty);
     }
 
     [RelayCommand]
@@ -465,6 +542,62 @@ public partial class MainWindowViewModel : ObservableObject
     }
 
     [RelayCommand]
+    private void SaveConfig()
+    {
+        var configService = App.ServiceProvider.GetRequiredService<ConfigService>();
+        var appPathService = App.ServiceProvider.GetRequiredService<AppPathService>();
+        InputBoxWindowViewModel vm = new()
+        {
+            Title = "Please enter a name for the config file",
+            Text = ""
+        };
+        vm.OnValidate += _ =>
+        {
+            if (string.IsNullOrWhiteSpace(vm.Text))
+            {
+                MessageBox.Show("Config name cannot be empty",
+                    "Error", icon: MessageBoxImage.Error);
+                return false;
+            }
+
+            if (!configService.IsConfigExist(vm.Text))
+                return true;
+            MessageBox.Show("Config file with the same name already exists. Please choose a different name.",
+                "Error", icon: MessageBoxImage.Error);
+            return false;
+        };
+        InputBoxWindow win = new(vm)
+        {
+            Owner = _window,
+            WindowStartupLocation = WindowStartupLocation.CenterOwner
+        };
+        if (win.ShowDialog() != true)
+            return;
+        var configListFile = appPathService.ConfigIdentityListFile;
+        var backupConfigListFile = "bak-" + configListFile;
+        try
+        {
+            if (File.Exists(configListFile))
+                File.Copy(configListFile, backupConfigListFile, true);
+            configService.SaveNewConfig(vm.Text, ToConfig());
+        }
+        catch (Exception e)
+        {
+            if (File.Exists(backupConfigListFile))
+                File.Move(backupConfigListFile, configListFile, true);
+            MessageBox.Show($"Failed to save config file: {e.Message}", "Error", icon: MessageBoxImage.Error);
+            return;
+        }
+        finally
+        {
+            if (File.Exists(backupConfigListFile))
+                File.Delete(backupConfigListFile);
+        }
+
+        MessageBox.Show("Config file saved successfully", "Info", icon: MessageBoxImage.Information);
+    }
+
+    [RelayCommand]
     private void SelectDestDir()
     {
         var dialog = new FileOpenDialog(FileDialogFlag.PICK_FOLDER);
@@ -479,7 +612,7 @@ public partial class MainWindowViewModel : ObservableObject
         var dialog = new FileOpenDialog(FileDialogFlag.MULTI_SELECT);
         if (!dialog.ShowDialog())
             return;
-        var appendBackslash = dialog.SelectedTargets.Select(src =>
+        IEnumerable<string> appendBackslash = dialog.SelectedTargets.Select(src =>
         {
             try
             {
@@ -498,9 +631,80 @@ public partial class MainWindowViewModel : ObservableObject
         SrcText = string.Join("\n", appendBackslash);
     }
 
+    [RelayCommand]
+    private void SettingsSubmenuOpened()
+    {
+        if (ConfigIdentities.Count > 0)
+            return;
+        var configService = App.ServiceProvider.GetRequiredService<ConfigService>();
+        List<ConfigIdentity> identities = configService.LoadConfigIdentityList();
+        List<ConfigIdentityViewModel> vms = identities.Select(identity => new ConfigIdentityViewModel
+        {
+            Name = identity.Name, Guid = identity.Guid, ChildCommandViewModels =
+            [
+                new ConfigIdentityChildCommandViewModel("load", LoadConfig),
+                new ConfigIdentityChildCommandViewModel("delete", DeleteConfig)
+            ]
+        }).ToList();
+
+        ConfigIdentities = new ObservableCollection<ConfigIdentityViewModel>(vms);
+    }
+
+    [RelayCommand]
+    private void SettingsSubmenuClosed(MenuItem menuItem)
+    {
+        if (menuItem.IsSubmenuOpen)
+            return;
+        ConfigIdentities = [];
+    }
+
+    [RelayCommand]
+    private void DeleteConfig(ConfigIdentityViewModel identityViewModel)
+    {
+        var configService = App.ServiceProvider.GetRequiredService<ConfigService>();
+        try
+        {
+            configService.RemoveConfig(new ConfigIdentity
+            {
+                Name = identityViewModel.Name,
+                Guid = identityViewModel.Guid
+            });
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show($"Failed to delete config file: {ex.Message}", "Error", icon: MessageBoxImage.Error);
+        }
+    }
+
     private void ShutDown()
     {
         WeakReferenceMessenger.Default.Send(new ShutdownRequestMessage());
+    }
+
+    private Config ToConfig()
+    {
+        return new Config
+        {
+            CreateOnly = CreateOnly,
+            EnableFilterFileAttributes = EnableFilterFileAttributes,
+            EnableFilterName = EnableFilterName,
+            EnableThrottling = EnableThrottling,
+            ExcFileAttributes = ExcFileAttributes,
+            ExcludeEmptyDirsOption = ExcludeEmptyDirsOption,
+            FileProperty = FileProperty,
+            FilterFileAttributes = FilterFileAttributes,
+            FilterName = FilterName,
+            IncFileAttributes = IncFileAttributes,
+            SelectedCopyMode = SelectedCopyMode,
+            SelectedIoMaxSizeThrottlingUnit = SelectedIoMaxSizeThrottlingUnit,
+            SelectedIoRateThrottlingUnit = SelectedIoRateThrottlingUnit,
+            SelectedThresholdThrottlingUnit = SelectedThresholdThrottlingUnit,
+            ThreadNum = ThreadNum,
+            ThrottlingIoMaxSize = ThrottlingIoMaxSize,
+            ThrottlingIoRate = ThrottlingIoRate,
+            ThrottlingThreshold = ThrottlingThreshold,
+            UnbufferedIo = UnbufferedIo
+        };
     }
 
     [RelayCommand]

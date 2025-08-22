@@ -4,10 +4,12 @@ using RabbitCopy.Enums;
 
 namespace RabbitCopy.Models;
 
-public class CopyModeItem
+public record CopyModeItem
 {
     public CopyMode Mode { get; set; }
+
     public string Description { get; set; } = string.Empty;
+
     public string Category { get; set; } = string.Empty;
 
     public override string ToString()

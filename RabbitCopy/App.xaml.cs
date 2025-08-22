@@ -1,6 +1,8 @@
 ﻿using System.CommandLine;
 using System.Windows;
+using Microsoft.Extensions.DependencyInjection;
 using RabbitCopy.Models;
+using RabbitCopy.Services;
 
 namespace RabbitCopy;
 
@@ -9,10 +11,13 @@ namespace RabbitCopy;
 /// </summary>
 public partial class App
 {
+    public static IServiceProvider ServiceProvider { get; private set; } = null!;
+
     protected override void OnStartup(StartupEventArgs e)
     {
         base.OnStartup(e);
 
+        PrepareServices();
 
         if (e.Args.Length > 0)
         {
@@ -30,7 +35,7 @@ public partial class App
             };
             var openUIOption = new Option<bool>("--open")
             {
-                Description = "Open the UI",
+                Description = "Open the UI"
             };
 
             rootCommand.Add(destOption);
@@ -63,5 +68,13 @@ public partial class App
             var mainWindow = new MainWindow();
             mainWindow.Show();
         }
+    }
+
+    private void PrepareServices()
+    {
+        var services = new ServiceCollection();
+        services.AddSingleton<AppPathService, AppPathService>();
+        services.AddSingleton<ConfigService, ConfigService>();
+        ServiceProvider = services.BuildServiceProvider();
     }
 }

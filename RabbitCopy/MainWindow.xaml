@@ -14,6 +14,7 @@
         TextElement.FontSize="10"
         Background="GhostWhite"
         WindowStartupLocation="CenterScreen"
+        x:Name="MainWindowName"
         Title="RabbitCopy" Height="600" Width="505">
     <Window.Resources>
         <Style TargetType="{x:Type Button}" BasedOn="{StaticResource ButtonBaseStyle}">
@@ -45,7 +46,37 @@
 
     <DockPanel>
         <Menu DockPanel.Dock="Top">
-            <MenuItem Header="Setting(_S)">
+            <Menu.Resources>
+                <HierarchicalDataTemplate DataType="{x:Type viewModels:ConfigIdentityChildCommandViewModel}">
+                    <TextBlock Text="{Binding Text}"></TextBlock>
+                </HierarchicalDataTemplate>
+                <HierarchicalDataTemplate DataType="{x:Type viewModels:ConfigIdentityViewModel}"
+                                          ItemsSource="{Binding ChildCommandViewModels}">
+                    <HierarchicalDataTemplate.ItemContainerStyle>
+                        <Style TargetType="MenuItem" BasedOn="{StaticResource MenuItemBaseStyle}">
+                            <!-- ReSharper disable once Xaml.BindingWithContextNotResolved -->
+                            <Setter Property="Command"
+                                    Value="{Binding ExecuteCommand}" />
+                            <Setter Property="CommandParameter"
+                                    Value="{Binding RelativeSource={RelativeSource AncestorType={x:Type MenuItem}},Path=DataContext}" />
+                        </Style>
+                    </HierarchicalDataTemplate.ItemContainerStyle>
+                    <TextBlock Text="{Binding Name}" />
+                </HierarchicalDataTemplate>
+            </Menu.Resources>
+            <MenuItem Header="Setting(_S)" x:Name="SettingsMenuItemName">
+                <b:Interaction.Triggers>
+                    <b:EventTrigger EventName="SubmenuOpened">
+                        <b:InvokeCommandAction Command="{Binding SettingsSubmenuOpenedCommand}" />
+                    </b:EventTrigger>
+                    <b:EventTrigger EventName="SubmenuClosed">
+                        <b:InvokeCommandAction
+                            Command="{Binding SettingsSubmenuClosedCommand}"
+                            CommandParameter="{Binding ElementName=SettingsMenuItemName}" />
+                    </b:EventTrigger>
+                </b:Interaction.Triggers>
+                <MenuItem Header="Save Config(_S)" Command="{Binding SaveConfigCommand}" />
+                <MenuItem Header="Load Config(_L)" ItemsSource="{Binding ConfigIdentities}" />
                 <MenuItem Header="Shell Extension Installer(_I)" Command="{Binding OpenShellExtensionInstallerCommand}" />
             </MenuItem>
         </Menu>
