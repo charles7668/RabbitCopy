@@ -18,6 +18,12 @@ public class RoboCopyOptionsBuilder
         return this;
     }
 
+    public RoboCopyOptionsBuilder DisableLogProgress()
+    {
+        _robocopyOptions.NoProgress = true;
+        return this;
+    }
+
     public RoboCopyOptionsBuilder DryRun()
     {
         _robocopyOptions.DryRun = true;

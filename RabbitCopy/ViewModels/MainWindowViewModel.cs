@@ -61,8 +61,6 @@ public partial class MainWindowViewModel : ObservableObject
         _window = window;
     }
 
-    private IconUpdater _iconUpdater;
-
     [UsedImplicitly]
     public MainWindowViewModel()
     {
@@ -157,8 +155,13 @@ public partial class MainWindowViewModel : ObservableObject
     [ObservableProperty]
     private string _filterName = string.Empty;
 
+    private IconUpdater _iconUpdater;
+
     [ObservableProperty]
     private FileAttributes _incFileAttributes;
+
+    [ObservableProperty]
+    private bool _noProgress;
 
     private float _progress;
 
@@ -381,6 +384,9 @@ public partial class MainWindowViewModel : ObservableObject
 
             if (EnableFilterFileAttributes)
                 optionsBuilder.WithFileAttributesFilter(FilterFileAttributes);
+
+            if (NoProgress)
+                optionsBuilder.DisableLogProgress();
 
             return optionsBuilder;
         }

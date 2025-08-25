@@ -33,4 +33,6 @@ public class RoboCopyOptions
     public string IoRate { get; set; } = string.Empty;
 
     public string Threshold { get; set; } = string.Empty;
+
+    public bool NoProgress { get; set; }
 }

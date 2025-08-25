@@ -78,6 +78,9 @@ public static class RoboCopyOptionsExtensions
         if (options.FileAttributesFilter != FileAttributes.None)
             args.Add($"/ia:{FileAttributesArgs(options.FileAttributesFilter)}");
 
+        if (options.NoProgress)
+            args.Add("/np");
+
         return string.Join(" ", args);
     }
 }

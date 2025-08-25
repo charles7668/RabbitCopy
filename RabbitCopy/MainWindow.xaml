@@ -115,7 +115,8 @@
                                  VerticalAlignment="Center" />
                     </Grid>
                     <hc:SimpleStackPanel Orientation="Horizontal">
-                        <TextBlock>
+                        <CheckBox Content="No Progress" IsChecked="{Binding NoProgress}" />
+                        <TextBlock VerticalAlignment="Center" Margin="10,0,0,0">
                             Progress : <TextBlock Text="{Binding ProgressText}" />
                         </TextBlock>
                     </hc:SimpleStackPanel>
