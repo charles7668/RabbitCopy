@@ -104,6 +104,14 @@ public partial class MainWindowViewModel : ObservableObject
         _selectedCopyMode = _copyModeItems[1];
 
         _windowIcon = ImageHelper.ByteArrayToBitmapImage(IconResource.rabbit_32x32);
+
+        var historyService = App.ServiceProvider.GetRequiredService<HistoryService>();
+        if (_runOptions?.OpenUI != false)
+        {
+            historyService.LoadHistory(out var srcHistories, out var dstHistories);
+            _srcHistory = new ObservableCollection<string>(srcHistories);
+            _dstHistory = new ObservableCollection<string>(dstHistories);
+        }
     }
 
     private readonly RunOptions? _runOptions;
@@ -131,6 +139,9 @@ public partial class MainWindowViewModel : ObservableObject
     private string _destText = string.Empty;
 
     [ObservableProperty]
+    private ObservableCollection<string> _dstHistory = [];
+
+    [ObservableProperty]
     private bool _enableFilterFileAttributes;
 
     [ObservableProperty]
@@ -155,7 +166,7 @@ public partial class MainWindowViewModel : ObservableObject
     [ObservableProperty]
     private string _filterName = string.Empty;
 
-    private IconUpdater _iconUpdater;
+    private readonly IconUpdater _iconUpdater;
 
     [ObservableProperty]
     private FileAttributes _incFileAttributes;
@@ -179,6 +190,9 @@ public partial class MainWindowViewModel : ObservableObject
 
     [ObservableProperty]
     private string _selectedThresholdThrottlingUnit = "k";
+
+    [ObservableProperty]
+    private ObservableCollection<string> _srcHistory = [];
 
     [ObservableProperty]
     private string _srcText = string.Empty;
@@ -323,6 +337,9 @@ public partial class MainWindowViewModel : ObservableObject
         }, TaskCreationOptions.LongRunning).Unwrap();
 
         UpdateWindowIcon(errorExist ? State.ERROR : State.SUCCESS);
+
+        var historyService = App.ServiceProvider.GetRequiredService<HistoryService>();
+        historyService.UpdateHistory(srcList, [DestText]);
 
         WeakReferenceMessenger.Default.Send<ScrollToEndRequestMessage>();
 
@@ -650,6 +667,12 @@ public partial class MainWindowViewModel : ObservableObject
     }
 
     [RelayCommand]
+    private void SelectDstHistory(string history)
+    {
+        DestText = history;
+    }
+
+    [RelayCommand]
     private void SelectSources()
     {
         var dialog = new FileOpenDialog(FileDialogFlag.MULTI_SELECT);
@@ -672,6 +695,12 @@ public partial class MainWindowViewModel : ObservableObject
             return "";
         }).Where(src => !string.IsNullOrWhiteSpace(src));
         SrcText = string.Join("\n", appendBackslash);
+    }
+
+    [RelayCommand]
+    private void SelectSrcHistory(string history)
+    {
+        SrcText = history;
     }
 
     [RelayCommand]

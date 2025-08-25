@@ -81,6 +81,7 @@ public partial class App
         services.AddSingleton<AppPathService, AppPathService>();
         services.AddSingleton<ConfigService, ConfigService>();
         services.AddSingleton<IconUpdater, IconUpdater>();
+        services.AddSingleton<HistoryService, HistoryService>();
         ServiceProvider = services.BuildServiceProvider();
     }
 }
