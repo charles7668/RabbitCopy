@@ -1,8 +1,10 @@
 ﻿using System.CommandLine;
 using System.Windows;
+using System.Windows.Forms;
 using Microsoft.Extensions.DependencyInjection;
 using RabbitCopy.Models;
 using RabbitCopy.Services;
+using MessageBox = System.Windows.MessageBox;
 
 namespace RabbitCopy;
 
@@ -75,6 +77,7 @@ public partial class App
         var services = new ServiceCollection();
         services.AddSingleton<AppPathService, AppPathService>();
         services.AddSingleton<ConfigService, ConfigService>();
+        services.AddSingleton<IconUpdater, IconUpdater>();
         ServiceProvider = services.BuildServiceProvider();
     }
 }

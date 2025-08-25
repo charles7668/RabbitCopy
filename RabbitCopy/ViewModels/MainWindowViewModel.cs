@@ -61,9 +61,12 @@ public partial class MainWindowViewModel : ObservableObject
         _window = window;
     }
 
+    private IconUpdater _iconUpdater;
+
     [UsedImplicitly]
     public MainWindowViewModel()
     {
+        _iconUpdater = App.ServiceProvider.GetRequiredService<IconUpdater>();
         _copyModeItems =
         [
             new CopyModeItem
@@ -102,7 +105,7 @@ public partial class MainWindowViewModel : ObservableObject
 
         _selectedCopyMode = _copyModeItems[1];
 
-        WindowIcon = ImageHelper.ByteArrayToBitmapImage(IconResource.rabbit_32x32);
+        _windowIcon = ImageHelper.ByteArrayToBitmapImage(IconResource.rabbit_32x32);
     }
 
     private readonly RunOptions? _runOptions;
@@ -256,6 +259,8 @@ public partial class MainWindowViewModel : ObservableObject
             }
         }
 
+        UpdateWindowIcon(State.RUNNING);
+
         if (needCreate)
             Directory.CreateDirectory(DestText);
 
@@ -270,12 +275,13 @@ public partial class MainWindowViewModel : ObservableObject
         var totalTaskCount = dirCopyList.Count + srcGroup.Count;
         var completeTaskCount = 0;
         var unitProgress = 100.0f / totalTaskCount;
+        var errorExist = false;
 
         _copyProCancellationTokenSource = new CancellationTokenSource();
 
         var roboCopy = new RoboCopy(
             OnOutputReceive,
-            error => CopyLog += $"Error : {error}\n"
+            OnErrorReceive
         );
 
         var cancellationToken = _copyProCancellationTokenSource.Token;
@@ -313,6 +319,8 @@ public partial class MainWindowViewModel : ObservableObject
             }
         }, TaskCreationOptions.LongRunning).Unwrap();
 
+        UpdateWindowIcon(errorExist ? State.ERROR : State.SUCCESS);
+
         WeakReferenceMessenger.Default.Send<ScrollToEndRequestMessage>();
 
         return;
@@ -337,6 +345,13 @@ public partial class MainWindowViewModel : ObservableObject
             }
 
             CopyLog += $"{output}\n";
+            WeakReferenceMessenger.Default.Send<ScrollToEndRequestMessage>();
+        }
+
+        void OnErrorReceive(string error)
+        {
+            CopyLog += $"Error : {error}\n";
+            errorExist = true;
             WeakReferenceMessenger.Default.Send<ScrollToEndRequestMessage>();
         }
 
@@ -368,6 +383,24 @@ public partial class MainWindowViewModel : ObservableObject
                 optionsBuilder.WithFileAttributesFilter(FilterFileAttributes);
 
             return optionsBuilder;
+        }
+    }
+
+    [RelayCommand]
+    private void DeleteConfig(ConfigIdentityViewModel identityViewModel)
+    {
+        var configService = App.ServiceProvider.GetRequiredService<ConfigService>();
+        try
+        {
+            configService.RemoveConfig(new ConfigIdentity
+            {
+                Name = identityViewModel.Name,
+                Guid = identityViewModel.Guid
+            });
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show($"Failed to delete config file: {ex.Message}", "Error", icon: MessageBoxImage.Error);
         }
     }
 
@@ -636,6 +669,14 @@ public partial class MainWindowViewModel : ObservableObject
     }
 
     [RelayCommand]
+    private void SettingsSubmenuClosed(MenuItem menuItem)
+    {
+        if (menuItem.IsSubmenuOpen)
+            return;
+        ConfigIdentities = [];
+    }
+
+    [RelayCommand]
     private void SettingsSubmenuOpened()
     {
         if (ConfigIdentities.Count > 0)
@@ -652,32 +693,6 @@ public partial class MainWindowViewModel : ObservableObject
         }).ToList();
 
         ConfigIdentities = new ObservableCollection<ConfigIdentityViewModel>(vms);
-    }
-
-    [RelayCommand]
-    private void SettingsSubmenuClosed(MenuItem menuItem)
-    {
-        if (menuItem.IsSubmenuOpen)
-            return;
-        ConfigIdentities = [];
-    }
-
-    [RelayCommand]
-    private void DeleteConfig(ConfigIdentityViewModel identityViewModel)
-    {
-        var configService = App.ServiceProvider.GetRequiredService<ConfigService>();
-        try
-        {
-            configService.RemoveConfig(new ConfigIdentity
-            {
-                Name = identityViewModel.Name,
-                Guid = identityViewModel.Guid
-            });
-        }
-        catch (Exception ex)
-        {
-            MessageBox.Show($"Failed to delete config file: {ex.Message}", "Error", icon: MessageBoxImage.Error);
-        }
     }
 
     private void ShutDown()
@@ -709,6 +724,34 @@ public partial class MainWindowViewModel : ObservableObject
             ThrottlingThreshold = ThrottlingThreshold,
             UnbufferedIo = UnbufferedIo
         };
+    }
+
+    private void UpdateWindowIcon(State state)
+    {
+        if (_window is null)
+            return;
+        switch (state)
+        {
+            case State.IDLE:
+                UpdateIcon(IconResource.rabbit_32x32);
+                break;
+            case State.RUNNING:
+                UpdateIcon(IconResource.rabbit_yellow_32x32);
+                break;
+            case State.SUCCESS:
+                UpdateIcon(IconResource.rabbit_green_32x32);
+                break;
+            case State.ERROR:
+                UpdateIcon(IconResource.rabbit_red_32x32);
+                break;
+            default:
+                throw new ArgumentOutOfRangeException(nameof(state), state, null);
+        }
+
+        void UpdateIcon(byte[] imageData)
+        {
+            _iconUpdater.UpdateTaskbarIcon(_window!, imageData);
+        }
     }
 
     [RelayCommand]
