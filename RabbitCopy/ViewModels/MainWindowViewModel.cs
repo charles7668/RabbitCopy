@@ -216,8 +216,6 @@ public partial class MainWindowViewModel : ObservableObject
                 var attributes = File.GetAttributes(src);
                 if (attributes.HasFlag(FileAttributes.Directory))
                 {
-                    if (!src.EndsWith('\\'))
-                        throw new ArgumentException($"The source path includes a non-existent file: {src}.");
                     dirCopyList.Add(src.TrimEnd('\\'));
                 }
                 else
@@ -263,7 +261,10 @@ public partial class MainWindowViewModel : ObservableObject
 
         CopyLog = string.Empty;
 
-        var destDir = DestText.TrimEnd('\\');
+        // If the destination ends with a '\' or '/' , copy the contents into a new folder that has the same name as the source folder.
+        var inNewFolder = DestText.EndsWith('\\') || DestText.EndsWith('/');
+
+        var destDir = DestText.TrimEnd('\\').TrimEnd('/');
 
         _progress = 0.0f;
         var totalTaskCount = dirCopyList.Count + srcGroup.Count;
@@ -283,6 +284,9 @@ public partial class MainWindowViewModel : ObservableObject
         {
             foreach (var dirCopy in dirCopyList)
             {
+                var destDirPath = destDir;
+                if (inNewFolder)
+                    destDirPath = Path.Join(destDirPath, Path.GetFileName(dirCopy));
                 if (cancellationToken.IsCancellationRequested)
                     return;
                 var options = CreateDefaultBuilder().WithSubDirs(!ExcludeEmptyDirsOption).Build();
@@ -291,7 +295,7 @@ public partial class MainWindowViewModel : ObservableObject
                     filterNames = ["*.*"];
                 else
                     filterNames = filterNames.Select(x => "\"" + x + "\"").ToArray();
-                await roboCopy.StartCopy(dirCopy, destDir, filterNames, options, cancellationToken);
+                await roboCopy.StartCopy(dirCopy, destDirPath, filterNames, options, cancellationToken);
                 OnProgressUpdate(100);
                 completeTaskCount++;
             }
