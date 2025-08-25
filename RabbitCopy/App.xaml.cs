@@ -48,7 +48,7 @@ public partial class App
 
             var runOptions = new RunOptions
             {
-                DestPath = parseResult.GetValue(destOption),
+                DestPath = parseResult.GetValue(destOption)?.TrimEnd('\\'),
                 SrcPaths = parseResult.GetValue(filesOption),
                 OpenUI = parseResult.GetValue(openUIOption)
             };
@@ -61,6 +61,9 @@ public partial class App
                 Shutdown();
                 return;
             }
+
+            if (runOptions.DestPath != null)
+                runOptions.DestPath += '\\';
 
             var mainWindow = new MainWindow(runOptions);
             mainWindow.Show();
