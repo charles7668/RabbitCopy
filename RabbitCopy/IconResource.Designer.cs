@@ -79,5 +79,65 @@ namespace RabbitCopy {
                 return ((byte[])(obj));
             }
         }
+        
+        /// <summary>
+        ///   查詢類型 System.Byte[] 的當地語系化資源。
+        /// </summary>
+        internal static byte[] rabbit_green_16x16 {
+            get {
+                object obj = ResourceManager.GetObject("rabbit green 16x16", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   查詢類型 System.Byte[] 的當地語系化資源。
+        /// </summary>
+        internal static byte[] rabbit_green_32x32 {
+            get {
+                object obj = ResourceManager.GetObject("rabbit green 32x32", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   查詢類型 System.Byte[] 的當地語系化資源。
+        /// </summary>
+        internal static byte[] rabbit_red_16x16 {
+            get {
+                object obj = ResourceManager.GetObject("rabbit red 16x16", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   查詢類型 System.Byte[] 的當地語系化資源。
+        /// </summary>
+        internal static byte[] rabbit_red_32x32 {
+            get {
+                object obj = ResourceManager.GetObject("rabbit red 32x32", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   查詢類型 System.Byte[] 的當地語系化資源。
+        /// </summary>
+        internal static byte[] rabbit_yellow_16x16 {
+            get {
+                object obj = ResourceManager.GetObject("rabbit yellow 16x16", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   查詢類型 System.Byte[] 的當地語系化資源。
+        /// </summary>
+        internal static byte[] rabbit_yellow_32x32 {
+            get {
+                object obj = ResourceManager.GetObject("rabbit yellow 32x32", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
     }
 }
