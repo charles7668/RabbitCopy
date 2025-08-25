@@ -640,7 +640,7 @@ public partial class MainWindowViewModel : ObservableObject
         var dialog = new FileOpenDialog(FileDialogFlag.PICK_FOLDER);
         if (!dialog.ShowDialog() || dialog.SelectedTargets.Count == 0)
             return;
-        DestText = dialog.SelectedTargets[0];
+        DestText = dialog.SelectedTargets[0] + "\\";
     }
 
     [RelayCommand]
