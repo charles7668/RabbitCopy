@@ -300,7 +300,15 @@ public class ContextMenuExt : IShellExtInit, IContextMenu
         StringBuilder folderPathBuilder = new(260);
         var res = SHGetPathFromIDListW(pidlFolder, folderPathBuilder);
         if (pidlFolder != IntPtr.Zero && res)
+        {
             _dstArray.Add(folderPathBuilder.ToString());
+        }
+        else if (_srcArray.Count == 1)
+        {
+            var attributes = File.GetAttributes(_srcArray[0]);
+            if (attributes.HasFlag(FileAttributes.Directory))
+                _dstArray.Add(_srcArray[0]);
+        }
     }
 
     ~ContextMenuExt()
