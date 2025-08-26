@@ -4,6 +4,10 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 VisualStudioVersion = 17.14.36401.2
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RabbitCopy", "RabbitCopy\RabbitCopy.csproj", "{CCBE14D1-DA91-4BAA-A8E9-4C203FBC02EA}"
+	ProjectSection(ProjectDependencies) = postProject
+		{1CED536E-DF40-4E8C-889B-5526E1EC9403} = {1CED536E-DF40-4E8C-889B-5526E1EC9403}
+		{47E3E45D-64C7-46F7-ABBF-3D82332E1DA6} = {47E3E45D-64C7-46F7-ABBF-3D82332E1DA6}
+	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RabbitCopyContextMenu", "RabbitCopyContextMenu\RabbitCopyContextMenu.csproj", "{1CED536E-DF40-4E8C-889B-5526E1EC9403}"
 EndProject

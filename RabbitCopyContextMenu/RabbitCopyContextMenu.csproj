@@ -5,6 +5,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
 	<EnableComHosting>true</EnableComHosting>
+	<BaseOutputPath>$(SolutionDir)bin</BaseOutputPath>
   </PropertyGroup>
 
   <ItemGroup>
