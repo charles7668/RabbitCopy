@@ -151,7 +151,7 @@ public partial class MainWindowViewModel : ObservableObject
     private bool _enableThrottling;
 
     [ObservableProperty]
-    private FileAttributes _excFileAttributes;
+    private FileAttributes _removeFileAttributes;
 
     [ObservableProperty]
     private bool _excludeEmptyDirsOption;
@@ -169,7 +169,7 @@ public partial class MainWindowViewModel : ObservableObject
     private readonly IconUpdater _iconUpdater;
 
     [ObservableProperty]
-    private FileAttributes _incFileAttributes;
+    private FileAttributes _addFileAttributes;
 
     [ObservableProperty]
     private bool _noProgress;
@@ -381,7 +381,7 @@ public partial class MainWindowViewModel : ObservableObject
             if (dryRun)
                 optionsBuilder.DryRun();
             optionsBuilder.SetCopyMode(SelectedCopyMode.Mode)
-                .SetFileProperty(FileProperty).SetFileAttributes(IncFileAttributes, ExcFileAttributes)
+                .SetFileProperty(FileProperty).SetFileAttributes(AddFileAttributes, RemoveFileAttributes)
                 .SetThreadNum(ThreadNum);
             if (UnbufferedIo)
                 optionsBuilder.EnableUnbufferedIo();
@@ -489,12 +489,12 @@ public partial class MainWindowViewModel : ObservableObject
         _enableFilterFileAttributes = config.EnableFilterFileAttributes;
         _enableFilterName = config.EnableFilterName;
         _enableThrottling = config.EnableThrottling;
-        _excFileAttributes = config.ExcFileAttributes;
+        _removeFileAttributes = config.RemoveFileAttributes;
         _excludeEmptyDirsOption = config.ExcludeEmptyDirsOption;
         _fileProperty = config.FileProperty;
         _filterFileAttributes = config.FilterFileAttributes;
         _filterName = config.FilterName;
-        _incFileAttributes = config.IncFileAttributes;
+        _addFileAttributes = config.AddFileAttributes;
         _selectedCopyMode = CopyModeItems.First(x => x == config.SelectedCopyMode);
         _selectedIoMaxSizeThrottlingUnit = config.SelectedIoMaxSizeThrottlingUnit;
         _selectedIoRateThrottlingUnit = config.SelectedIoRateThrottlingUnit;
@@ -511,25 +511,25 @@ public partial class MainWindowViewModel : ObservableObject
     [RelayCommand]
     private void OpenFileAttributesSelectWindowExclude()
     {
-        var vm = new FileAttributesSelectWindowViewModel(ExcFileAttributes, true);
+        var vm = new FileAttributesSelectWindowViewModel(RemoveFileAttributes, true);
         var window = new FileAttributesSelectWindow(vm)
         {
             Owner = _window
         };
         window.ShowDialog();
-        ExcFileAttributes = GetSelectedFileAttributes(vm);
+        RemoveFileAttributes = GetSelectedFileAttributes(vm);
     }
 
     [RelayCommand]
     private void OpenFileAttributesSelectWindowInclude()
     {
-        var vm = new FileAttributesSelectWindowViewModel(IncFileAttributes, false);
+        var vm = new FileAttributesSelectWindowViewModel(AddFileAttributes, false);
         var window = new FileAttributesSelectWindow(vm)
         {
             Owner = _window
         };
         window.ShowDialog();
-        IncFileAttributes = GetSelectedFileAttributes(vm);
+        AddFileAttributes = GetSelectedFileAttributes(vm);
     }
 
     [RelayCommand]
@@ -743,12 +743,12 @@ public partial class MainWindowViewModel : ObservableObject
             EnableFilterFileAttributes = EnableFilterFileAttributes,
             EnableFilterName = EnableFilterName,
             EnableThrottling = EnableThrottling,
-            ExcFileAttributes = ExcFileAttributes,
+            RemoveFileAttributes = RemoveFileAttributes,
             ExcludeEmptyDirsOption = ExcludeEmptyDirsOption,
             FileProperty = FileProperty,
             FilterFileAttributes = FilterFileAttributes,
             FilterName = FilterName,
-            IncFileAttributes = IncFileAttributes,
+            AddFileAttributes = AddFileAttributes,
             SelectedCopyMode = SelectedCopyMode,
             SelectedIoMaxSizeThrottlingUnit = SelectedIoMaxSizeThrottlingUnit,
             SelectedIoRateThrottlingUnit = SelectedIoRateThrottlingUnit,

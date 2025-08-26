@@ -18,9 +18,9 @@ public class RoboCopyOptions
 
     public CopyMode CopyMode { get; set; } = CopyMode.DIFF_SIZE_DATE;
 
-    public FileAttributes IncludeFileAttributes { get; set; }
+    public FileAttributes AddFileAttributes { get; set; }
 
-    public FileAttributes ExcludeFileAttributes { get; set; }
+    public FileAttributes RemoveFileAttributes { get; set; }
 
     public FileAttributes FileAttributesFilter { get; set; }
 

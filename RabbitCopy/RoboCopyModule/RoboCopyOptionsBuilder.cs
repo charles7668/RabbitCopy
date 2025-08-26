@@ -44,8 +44,8 @@ public class RoboCopyOptionsBuilder
 
     public RoboCopyOptionsBuilder SetFileAttributes(FileAttributes include, FileAttributes exclude)
     {
-        _robocopyOptions.IncludeFileAttributes = include;
-        _robocopyOptions.ExcludeFileAttributes = exclude;
+        _robocopyOptions.AddFileAttributes = include;
+        _robocopyOptions.RemoveFileAttributes = exclude;
         return this;
     }
 

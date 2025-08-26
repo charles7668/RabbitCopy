@@ -282,18 +282,18 @@
                                             <hc:SimpleStackPanel HorizontalAlignment="Left" Orientation="Horizontal">
                                                 <Button
                                                     Command="{Binding OpenFileAttributesSelectWindowIncludeCommand}">
-                                                    Inc File Attributes
+                                                    Add File Attributes
                                                 </Button>
                                                 <TextBlock VerticalAlignment="Center"
-                                                           Text="{Binding IncFileAttributes, Converter={StaticResource FileAttributesToStringConverter}}" />
+                                                           Text="{Binding AddFileAttributes, Converter={StaticResource FileAttributesToStringConverter}}" />
                                             </hc:SimpleStackPanel>
                                             <hc:SimpleStackPanel HorizontalAlignment="Left" Orientation="Horizontal">
                                                 <Button
                                                     Command="{Binding OpenFileAttributesSelectWindowExcludeCommand}">
-                                                    Exc File Attributes
+                                                    Del File Attributes
                                                 </Button>
                                                 <TextBlock VerticalAlignment="Center"
-                                                           Text="{Binding ExcFileAttributes, Converter={StaticResource FileAttributesToStringConverter}}" />
+                                                           Text="{Binding RemoveFileAttributes, Converter={StaticResource FileAttributesToStringConverter}}" />
                                             </hc:SimpleStackPanel>
                                             <CheckBox IsChecked="{Binding CreateOnly}">Create Only</CheckBox>
                                             <hc:SimpleStackPanel Orientation="Horizontal">

@@ -66,10 +66,10 @@ public static class RoboCopyOptionsExtensions
             args.Add("/j");
         args.Add(CopyModeArgs(options.CopyMode));
         args.Add(FilePropertiesArgs(options.FileProperties));
-        if (options.IncludeFileAttributes != FileAttributes.None)
-            args.Add($"/a+:{FileAttributesArgs(options.IncludeFileAttributes)}");
-        if (options.ExcludeFileAttributes != FileAttributes.None)
-            args.Add($"/a-:{FileAttributesArgs(options.ExcludeFileAttributes)}");
+        if (options.AddFileAttributes != FileAttributes.None)
+            args.Add($"/a+:{FileAttributesArgs(options.AddFileAttributes)}");
+        if (options.RemoveFileAttributes != FileAttributes.None)
+            args.Add($"/a-:{FileAttributesArgs(options.RemoveFileAttributes)}");
         if (options.CreateOnly)
             args.Add("/create");
         if (options.ThreadNum != 8)

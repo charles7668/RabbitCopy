@@ -13,7 +13,7 @@ public class Config
 
     public bool EnableThrottling { get; set; }
 
-    public FileAttributes ExcFileAttributes { get; set; }
+    public FileAttributes RemoveFileAttributes { get; set; }
 
     public bool ExcludeEmptyDirsOption { get; set; }
 
@@ -23,7 +23,7 @@ public class Config
 
     public string FilterName { get; set; } = string.Empty;
 
-    public FileAttributes IncFileAttributes { get; set; }
+    public FileAttributes AddFileAttributes { get; set; }
 
     public CopyModeItem SelectedCopyMode { get; set; } = new();
 
