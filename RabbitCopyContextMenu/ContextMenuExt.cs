@@ -17,7 +17,7 @@ public class ContextMenuExt : IShellExtInit, IContextMenu
 {
     public ContextMenuExt()
     {
-        using var ms = new MemoryStream(Resource.rabbit_16x16);
+        using var ms = new MemoryStream(Resource.rabbit_white_16x16);
         try
         {
             var bitmap = new Bitmap(ms);
@@ -83,6 +83,7 @@ public class ContextMenuExt : IShellExtInit, IContextMenu
 
         if (!InsertMenuItem(registerTo, position, true, ref sub))
             return Marshal.GetHRForLastWin32Error();
+
         return 0;
     }
 

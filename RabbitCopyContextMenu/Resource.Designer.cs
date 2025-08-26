@@ -63,19 +63,9 @@ namespace RabbitCopyContextMenu {
         /// <summary>
         ///   查詢類型 System.Byte[] 的當地語系化資源。
         /// </summary>
-        internal static byte[] rabbit_16x16 {
+        internal static byte[] rabbit_white_16x16 {
             get {
-                object obj = ResourceManager.GetObject("rabbit_16x16", resourceCulture);
-                return ((byte[])(obj));
-            }
-        }
-        
-        /// <summary>
-        ///   查詢類型 System.Byte[] 的當地語系化資源。
-        /// </summary>
-        internal static byte[] rabbit_32x32 {
-            get {
-                object obj = ResourceManager.GetObject("rabbit_32x32", resourceCulture);
+                object obj = ResourceManager.GetObject("rabbit white 16x16", resourceCulture);
                 return ((byte[])(obj));
             }
         }
