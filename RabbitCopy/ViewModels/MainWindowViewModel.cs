@@ -49,7 +49,7 @@ public partial class ConfigIdentityViewModel : ObservableObject
 
 public partial class MainWindowViewModel : ObservableObject
 {
-    public MainWindowViewModel(RunOptions runOptions) : this()
+    public MainWindowViewModel(MainWindow window, RunOptions runOptions) : this(window)
     {
         _runOptions = runOptions;
         _srcText = string.Join("\n", runOptions.SrcPaths ?? []);
@@ -805,6 +805,23 @@ public partial class MainWindowViewModel : ObservableObject
         // if open ui is not specified, execute copy directly
         if (!_runOptions.OpenUI)
         {
+            if (_runOptions.Guid != null)
+            {
+                var configService = App.ServiceProvider.GetRequiredService<ConfigService>();
+                var configIdentities = configService.LoadConfigIdentityList();
+
+                var targetConfigIdentity = configIdentities.FirstOrDefault(x => x.Guid == _runOptions.Guid);
+                if (targetConfigIdentity == null)
+                {
+                    MessageBox.Show($"The specified config GUID {_runOptions.Guid} does not exist.",
+                        "Error", icon: MessageBoxImage.Error);
+                    ShutDown();
+                    return;
+                }
+
+                var targetConfig = configService.LoadConfig(targetConfigIdentity);
+                LoadFromConfig(targetConfig);
+            }
             await ExecuteCopy();
             ShutDown();
         }

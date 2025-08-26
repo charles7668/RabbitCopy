@@ -4,6 +4,7 @@ using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Runtime.InteropServices.ComTypes;
 using System.Text;
+using System.Text.Json;
 using MS.WindowsAPICodePack.Internal;
 using static RabbitCopyContextMenu.ShellExt;
 
@@ -26,14 +27,32 @@ public class ContextMenuExt : IShellExtInit, IContextMenu
         {
             _menuBitmap = IntPtr.Zero;
         }
+        _assemblyDir = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) ?? "";
+        var configIdentitiesFile = Path.Combine(_assemblyDir, "config-list.json");
+        if (!File.Exists(configIdentitiesFile))
+            return;
+        try
+        {
+            using var sr = new StreamReader(configIdentitiesFile, Encoding.UTF8);
+            var jsonContent = sr.ReadToEnd();
+            var configList = JsonSerializer.Deserialize<List<ConfigIdentity>>(jsonContent);
+            _configIdentities = configList ?? [];
+        }
+        catch
+        {
+            // ignore
+        }
     }
 
+    private string _assemblyDir;
+    private readonly List<ConfigIdentity> _configIdentities = [];
     private readonly List<string> _dstArray = [];
     private readonly List<string> _srcArray = [];
     private IntPtr _menuBitmap;
     private const int COPY_MENU_ITEM_ID = 1;
     private const int OPEN_UI_MENU_ITEM_ID = 2;
     private const int PASTE_MENU_ITEM_ID = 3;
+    private const int CONFIG_ID_OFFSET = PASTE_MENU_ITEM_ID + 1;
     private static List<string> _copyCandidate = [];
 
     private int RegisterMenuItem(uint id,
@@ -120,6 +139,13 @@ public class ContextMenuExt : IShellExtInit, IContextMenu
         {
             RegisterMenuItem(PASTE_MENU_ITEM_ID, idCmdFirst, "Paste", true, _menuBitmap, IntPtr.Zero, subMenuPos++,
                 subMenu);
+            for (var i = 0; i < _configIdentities.Count; i++)
+            {
+                RegisterMenuItem((uint)(CONFIG_ID_OFFSET + i), idCmdFirst,
+                    "Paste with conf - " + _configIdentities[i].Name, true, IntPtr.Zero,
+                    IntPtr.Zero,
+                    subMenuPos++, subMenu);
+            }
         }
 
         sep = new MENUITEMINFO();
@@ -145,33 +171,7 @@ public class ContextMenuExt : IShellExtInit, IContextMenu
         }
         else if (ici.Value.verb == PASTE_MENU_ITEM_ID)
         {
-            if (_copyCandidate.Count == 0 || _dstArray.Count == 0 || location == null)
-                return;
-            var exePath = Path.Combine(location, "RabbitCopy.exe");
-            var src = _copyCandidate.Select(s =>
-            {
-                try
-                {
-                    var attributes = File.GetAttributes(s);
-                    if (attributes.HasFlag(FileAttributes.Directory))
-                        return s + "\\";
-                    return s;
-                }
-                catch
-                {
-                    return "";
-                }
-            }).Where(s => s != "");
-            var temp = src.ToList().ConvertAll(input => $"--files {input}");
-            string[] args = ["--dest", _dstArray[0], string.Join(" ", temp)];
-            ProcessStartInfo startInfo = new()
-            {
-                FileName = exePath,
-                Arguments = string.Join(" ", args),
-                UseShellExecute = true,
-                CreateNoWindow = true
-            };
-            Process.Start(startInfo);
+            StartPaste(null);
         }
         else if (ici.Value.verb == OPEN_UI_MENU_ITEM_ID)
         {
@@ -192,7 +192,7 @@ public class ContextMenuExt : IShellExtInit, IContextMenu
                     return "";
                 }
             }).Where(s => s != "");
-            var temp = src.ToList().ConvertAll(input => $"--files {input}");
+            var temp = src.ToList().ConvertAll(input => $"--files \"{input}\"");
             string[] args = ["--open", string.Join(" ", temp)];
             ProcessStartInfo startInfo = new()
             {
@@ -200,6 +200,46 @@ public class ContextMenuExt : IShellExtInit, IContextMenu
                 Arguments = string.Join(" ", args),
                 UseShellExecute = true,
                 CreateNoWindow = true
+            };
+            Process.Start(startInfo);
+        }else if (ici.Value.verb >= CONFIG_ID_OFFSET)
+        {
+            var itemIndex = ici.Value.verb - CONFIG_ID_OFFSET;
+            StartPaste(_configIdentities[(int)itemIndex].Guid);
+        }
+
+        void StartPaste(string? guid)
+        {
+            if (_copyCandidate.Count == 0 || _dstArray.Count == 0 || location == null)
+                return;
+            var exePath = Path.Combine(location, "RabbitCopy.exe");
+            var src = _copyCandidate.Select(s =>
+            {
+                try
+                {
+                    var attributes = File.GetAttributes(s);
+                    if (attributes.HasFlag(FileAttributes.Directory))
+                        return s + "\\";
+                    return s;
+                }
+                catch
+                {
+                    return "";
+                }
+            }).Where(s => s != "");
+            var temp = src.ToList().ConvertAll(input => $"--files \"{input}\"");
+            if (guid != null)
+            {
+                temp.Add($"--guid {guid}");
+            }
+            string[] args = ["--dest", "\"" + _dstArray[0] + "\"", string.Join(" ", temp)];
+            ProcessStartInfo startInfo = new()
+            {
+                FileName = exePath,
+                Arguments = string.Join(" ", args),
+                UseShellExecute = true,
+                CreateNoWindow = true,
+                WorkingDirectory = _assemblyDir
             };
             Process.Start(startInfo);
         }

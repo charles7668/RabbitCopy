@@ -39,10 +39,16 @@ public partial class App
             {
                 Description = "Open the UI"
             };
+            var guidOption = new Option<string>(
+                "--guid")
+            {
+                Description = "The config GUID to use"
+            };
 
             rootCommand.Add(destOption);
             rootCommand.Add(filesOption);
             rootCommand.Add(openUIOption);
+            rootCommand.Add(guidOption);
 
             var parseResult = rootCommand.Parse(e.Args);
 
@@ -50,7 +56,8 @@ public partial class App
             {
                 DestPath = parseResult.GetValue(destOption)?.TrimEnd('\\'),
                 SrcPaths = parseResult.GetValue(filesOption),
-                OpenUI = parseResult.GetValue(openUIOption)
+                OpenUI = parseResult.GetValue(openUIOption),
+                Guid = parseResult.GetValue(guidOption)
             };
 
             if ((runOptions.DestPath == null || runOptions.SrcPaths == null || runOptions.SrcPaths.Length == 0) &&
