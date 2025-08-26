@@ -2,6 +2,7 @@
 using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
+using System.Reflection;
 using System.Text.RegularExpressions;
 using System.Windows;
 using System.Windows.Controls;
@@ -64,6 +65,9 @@ public partial class MainWindowViewModel : ObservableObject
     [UsedImplicitly]
     public MainWindowViewModel()
     {
+        var assembly = Assembly.GetExecutingAssembly();
+        var version = assembly.GetName().Version!;
+        _windowTitle = $"RabbitCopy v{version}";
         _iconUpdater = App.ServiceProvider.GetRequiredService<IconUpdater>();
         _copyModeItems =
         [
@@ -114,9 +118,14 @@ public partial class MainWindowViewModel : ObservableObject
         }
     }
 
+    private readonly IconUpdater _iconUpdater;
+
     private readonly RunOptions? _runOptions;
 
     private readonly MainWindow? _window;
+
+    [ObservableProperty]
+    private FileAttributes _addFileAttributes;
 
     [ObservableProperty]
     private ObservableCollection<ConfigIdentityViewModel> _configIdentities = [];
@@ -151,9 +160,6 @@ public partial class MainWindowViewModel : ObservableObject
     private bool _enableThrottling;
 
     [ObservableProperty]
-    private FileAttributes _removeFileAttributes;
-
-    [ObservableProperty]
     private bool _excludeEmptyDirsOption;
 
     [ObservableProperty]
@@ -166,11 +172,6 @@ public partial class MainWindowViewModel : ObservableObject
     [ObservableProperty]
     private string _filterName = string.Empty;
 
-    private readonly IconUpdater _iconUpdater;
-
-    [ObservableProperty]
-    private FileAttributes _addFileAttributes;
-
     [ObservableProperty]
     private bool _noProgress;
 
@@ -178,6 +179,9 @@ public partial class MainWindowViewModel : ObservableObject
 
     [ObservableProperty]
     private string _progressText = "0.0%";
+
+    [ObservableProperty]
+    private FileAttributes _removeFileAttributes;
 
     [ObservableProperty]
     private CopyModeItem _selectedCopyMode;
@@ -217,6 +221,9 @@ public partial class MainWindowViewModel : ObservableObject
 
     [ObservableProperty]
     private BitmapImage? _windowIcon;
+
+    [ObservableProperty]
+    private string _windowTitle;
 
     private async Task Copy(bool dryRun)
     {

@@ -15,7 +15,7 @@
         Background="GhostWhite"
         WindowStartupLocation="CenterScreen"
         x:Name="MainWindowName"
-        Title="RabbitCopy" Height="600" Width="505">
+        Title="{Binding WindowTitle}" Height="600" Width="505">
     <Window.Resources>
         <Style TargetType="{x:Type Button}" BasedOn="{StaticResource ButtonBaseStyle}">
             <Setter Property="FontSize" Value="10" />
