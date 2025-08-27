@@ -45,41 +45,52 @@
     </b:Interaction.Triggers>
 
     <DockPanel>
-        <Menu DockPanel.Dock="Top">
-            <Menu.Resources>
-                <HierarchicalDataTemplate DataType="{x:Type viewModels:ConfigIdentityChildCommandViewModel}">
-                    <TextBlock Text="{Binding Text}" />
-                </HierarchicalDataTemplate>
-                <HierarchicalDataTemplate DataType="{x:Type viewModels:ConfigIdentityViewModel}"
-                                          ItemsSource="{Binding ChildCommandViewModels}">
-                    <HierarchicalDataTemplate.ItemContainerStyle>
-                        <Style TargetType="MenuItem" BasedOn="{StaticResource MenuItemBaseStyle}">
-                            <!-- ReSharper disable once Xaml.BindingWithContextNotResolved -->
-                            <Setter Property="Command"
-                                    Value="{Binding ExecuteCommand}" />
-                            <Setter Property="CommandParameter"
-                                    Value="{Binding RelativeSource={RelativeSource AncestorType={x:Type MenuItem}},Path=DataContext}" />
-                        </Style>
-                    </HierarchicalDataTemplate.ItemContainerStyle>
-                    <TextBlock Text="{Binding Name}" />
-                </HierarchicalDataTemplate>
-            </Menu.Resources>
-            <MenuItem Header="Setting(_S)" x:Name="SettingsMenuItemName">
-                <b:Interaction.Triggers>
-                    <b:EventTrigger EventName="SubmenuOpened">
-                        <b:InvokeCommandAction Command="{Binding SettingsSubmenuOpenedCommand}" />
-                    </b:EventTrigger>
-                    <b:EventTrigger EventName="SubmenuClosed">
-                        <b:InvokeCommandAction
-                            Command="{Binding SettingsSubmenuClosedCommand}"
-                            CommandParameter="{Binding ElementName=SettingsMenuItemName}" />
-                    </b:EventTrigger>
-                </b:Interaction.Triggers>
-                <MenuItem Header="Save Config(_S)" Command="{Binding SaveConfigCommand}" />
-                <MenuItem Header="Load Config(_L)" ItemsSource="{Binding ConfigIdentities}" />
-                <MenuItem Header="Shell Extension Installer(_I)" Command="{Binding OpenShellExtensionInstallerCommand}" />
-            </MenuItem>
-        </Menu>
+        <Grid DockPanel.Dock="Top">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+            <Menu DockPanel.Dock="Top">
+                <Menu.Resources>
+                    <HierarchicalDataTemplate DataType="{x:Type viewModels:ConfigIdentityChildCommandViewModel}">
+                        <TextBlock Text="{Binding Text}" />
+                    </HierarchicalDataTemplate>
+                    <HierarchicalDataTemplate DataType="{x:Type viewModels:ConfigIdentityViewModel}"
+                                              ItemsSource="{Binding ChildCommandViewModels}">
+                        <HierarchicalDataTemplate.ItemContainerStyle>
+                            <Style TargetType="MenuItem" BasedOn="{StaticResource MenuItemBaseStyle}">
+                                <!-- ReSharper disable once Xaml.BindingWithContextNotResolved -->
+                                <Setter Property="Command"
+                                        Value="{Binding ExecuteCommand}" />
+                                <Setter Property="CommandParameter"
+                                        Value="{Binding RelativeSource={RelativeSource AncestorType={x:Type MenuItem}},Path=DataContext}" />
+                            </Style>
+                        </HierarchicalDataTemplate.ItemContainerStyle>
+                        <TextBlock Text="{Binding Name}" />
+                    </HierarchicalDataTemplate>
+                </Menu.Resources>
+                <MenuItem Header="Setting(_S)" x:Name="SettingsMenuItemName">
+                    <b:Interaction.Triggers>
+                        <b:EventTrigger EventName="SubmenuOpened">
+                            <b:InvokeCommandAction Command="{Binding SettingsSubmenuOpenedCommand}" />
+                        </b:EventTrigger>
+                        <b:EventTrigger EventName="SubmenuClosed">
+                            <b:InvokeCommandAction
+                                Command="{Binding SettingsSubmenuClosedCommand}"
+                                CommandParameter="{Binding ElementName=SettingsMenuItemName}" />
+                        </b:EventTrigger>
+                    </b:Interaction.Triggers>
+                    <MenuItem Header="Save Config(_S)" Command="{Binding SaveConfigCommand}" />
+                    <MenuItem Header="Load Config(_L)" ItemsSource="{Binding ConfigIdentities}" />
+                    <MenuItem Header="Shell Extension Installer(_I)"
+                              Command="{Binding OpenShellExtensionInstallerCommand}" />
+                </MenuItem>
+            </Menu>
+            <Menu Grid.Column="2" Visibility="{Binding ElevateVisibility}">
+                <MenuItem Header="Elevate" Command="{Binding ElevateCommand}"/>
+            </Menu>
+        </Grid>
         <Grid>
             <ScrollViewer>
                 <StackPanel HorizontalAlignment="Stretch">

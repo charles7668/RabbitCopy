@@ -67,6 +67,8 @@ public partial class MainWindowViewModel : ObservableObject
     {
         var assembly = Assembly.GetExecutingAssembly();
         var version = assembly.GetName().Version!;
+        var elevateService = App.ServiceProvider.GetRequiredService<ElevateService>();
+        _elevateVisibility = elevateService.CanElevate() ? Visibility.Visible : Visibility.Hidden;
         _windowTitle = $"RabbitCopy v{version}";
         _iconUpdater = App.ServiceProvider.GetRequiredService<IconUpdater>();
         _copyModeItems =
@@ -149,6 +151,9 @@ public partial class MainWindowViewModel : ObservableObject
 
     [ObservableProperty]
     private ObservableCollection<string> _dstHistory = [];
+
+    [ObservableProperty]
+    private Visibility _elevateVisibility;
 
     [ObservableProperty]
     private bool _enableFilterFileAttributes;
@@ -438,6 +443,20 @@ public partial class MainWindowViewModel : ObservableObject
     private async Task DryRunCopy()
     {
         await Copy(true);
+    }
+
+    [RelayCommand]
+    private void Elevate()
+    {
+        var elevateService = App.ServiceProvider.GetRequiredService<ElevateService>();
+        if (!elevateService.CanElevate())
+        {
+            MessageBox.Show("Can't launch elevated process",
+                "Error", icon: MessageBoxImage.Error);
+            return;
+        }
+
+        WeakReferenceMessenger.Default.Send<ElevateRequestMessage>();
     }
 
     [RelayCommand]
@@ -829,6 +848,7 @@ public partial class MainWindowViewModel : ObservableObject
                 var targetConfig = configService.LoadConfig(targetConfigIdentity);
                 LoadFromConfig(targetConfig);
             }
+
             await ExecuteCopy();
             ShutDown();
         }

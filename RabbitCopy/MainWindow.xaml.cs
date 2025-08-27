@@ -1,9 +1,10 @@
-﻿using System.Windows;
-using System.Windows.Controls;
+﻿using System.Diagnostics;
+using System.Windows;
 using System.Windows.Controls.Primitives;
 using CommunityToolkit.Mvvm.Messaging;
 using RabbitCopy.Models;
 using RabbitCopy.ViewModels;
+using Button = System.Windows.Controls.Button;
 
 namespace RabbitCopy;
 
@@ -21,6 +22,18 @@ public partial class MainWindow
             this, (_, _) => Close());
         WeakReferenceMessenger.Default.Register<ScrollToEndRequestMessage>(
             this, (_, _) => Dispatcher.BeginInvoke(() => { TxtLog.ScrollToEnd(); }));
+        WeakReferenceMessenger.Default.Register<ElevateRequestMessage>(
+            this, (_, _) => Dispatcher.BeginInvoke(() =>
+            {
+                ProcessStartInfo startInfo = new()
+                {
+                    FileName = Process.GetCurrentProcess().MainModule!.FileName,
+                    Verb = "runas",
+                    UseShellExecute = true,
+                    CreateNoWindow = false
+                };
+                Process.Start(startInfo);
+            }));
     }
 
     public MainWindow()
@@ -32,13 +45,18 @@ public partial class MainWindow
             this, (_, _) => { });
         WeakReferenceMessenger.Default.Register<ScrollToEndRequestMessage>(
             this, (_, _) => Dispatcher.BeginInvoke(() => { TxtLog.ScrollToEnd(); }));
-    }
-
-    private void SrcHistoryButton_OnClick(object sender, RoutedEventArgs e)
-    {
-        SrcHistoryContextMenu.PlacementTarget = (Button)sender;
-        SrcHistoryContextMenu.Placement = PlacementMode.Bottom;
-        SrcHistoryContextMenu.IsOpen = true;
+        WeakReferenceMessenger.Default.Register<ElevateRequestMessage>(
+            this, (_, _) => Dispatcher.BeginInvoke(() =>
+            {
+                ProcessStartInfo startInfo = new()
+                {
+                    FileName = Process.GetCurrentProcess().MainModule!.FileName,
+                    Verb = "runas",
+                    UseShellExecute = true,
+                    CreateNoWindow = false
+                };
+                Process.Start(startInfo);
+            }));
     }
 
     private void DstHistoryButton_OnClick(object sender, RoutedEventArgs e)
@@ -46,5 +64,12 @@ public partial class MainWindow
         DstHistoryContextMenu.PlacementTarget = (Button)sender;
         DstHistoryContextMenu.Placement = PlacementMode.Bottom;
         DstHistoryContextMenu.IsOpen = true;
+    }
+
+    private void SrcHistoryButton_OnClick(object sender, RoutedEventArgs e)
+    {
+        SrcHistoryContextMenu.PlacementTarget = (Button)sender;
+        SrcHistoryContextMenu.Placement = PlacementMode.Bottom;
+        SrcHistoryContextMenu.IsOpen = true;
     }
 }

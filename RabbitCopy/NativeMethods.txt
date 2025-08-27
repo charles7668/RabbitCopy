@@ -1,0 +1,18 @@
+// enum
+Windows.Win32.Security.TOKEN_ELEVATION_TYPE
+Windows.Win32.UI.WindowsAndMessaging.HWND_TOPMOST
+PROCESS_ACCESS_RIGHTS
+PROCESSINFOCLASS
+
+// structure
+Windows.Win32.Security.TOKEN_ELEVATION
+PROCESS_BASIC_INFORMATION
+STARTUPINFOW
+PROCESS_INFORMATION
+
+// function
+Windows.Win32.Security.GetTokenInformation
+Windows.Win32.System.Threading.OpenProcessToken
+OpenProcess
+NtQueryInformationProcess
+ResumeThread
