@@ -176,10 +176,10 @@ public class ContextMenuExt : IShellExtInit, IContextMenu
         }
         else if (ici.Value.verb == OPEN_UI_MENU_ITEM_ID)
         {
-            if (_copyCandidate.Count == 0 || location == null)
+            if (_srcArray.Count == 0 || location == null)
                 return;
             var exePath = Path.Combine(location, "RabbitCopy.exe");
-            var src = _copyCandidate.Select(s =>
+            var src = _srcArray.Select(s =>
             {
                 try
                 {
