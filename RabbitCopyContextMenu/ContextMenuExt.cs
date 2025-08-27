@@ -228,12 +228,12 @@ public class ContextMenuExt : IShellExtInit, IContextMenu
                     return "";
                 }
             }).Where(s => s != "");
-            var temp = src.ToList().ConvertAll(input => $"--files \"{input}\"");
+            var temp = src.ToList().ConvertAll(input => $"--files \"{input.Replace('\\', '/')}\"");
             if (guid != null)
             {
                 temp.Add($"--guid {guid}");
             }
-            string[] args = ["--dest", "\"" + _dstArray[0] + "\"", string.Join(" ", temp)];
+            string[] args = ["--dest", "\"" + _dstArray[0].Replace('\\', '/') + "\"", string.Join(" ", temp)];
             ProcessStartInfo startInfo = new()
             {
                 FileName = exePath,
