@@ -248,13 +248,13 @@ public partial class MainWindowViewModel : ObservableObject
                 var attributes = File.GetAttributes(src);
                 if (attributes.HasFlag(FileAttributes.Directory))
                 {
-                    dirCopyList.Add(src.TrimEnd('\\'));
+                    dirCopyList.Add(src.TrimEnd('\\').TrimEnd('/'));
                 }
                 else
                 {
                     var dirPath = Path.GetDirectoryName(src) ??
                                   throw new ArgumentException($"{src} can't detect parent dir");
-                    dirPath = dirPath.TrimEnd('\\');
+                    dirPath = dirPath.TrimEnd('\\').TrimEnd('/');
                     if (!srcGroup.ContainsKey(dirPath))
                         srcGroup.Add(dirPath, []);
 
