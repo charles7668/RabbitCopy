@@ -1,9 +1,21 @@
-﻿namespace RabbitCopy.Services;
+﻿using System.IO;
+using System.Reflection;
+
+namespace RabbitCopy.Services;
 
 public class AppPathService
 {
-    public string ConfigIdentityListFile { get; } = "config-list.json";
-    public string ConfigSaveDir { get; } = "configs";
+    public AppPathService()
+    {
+        var assemblyPath = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location)!;
+        ConfigIdentityListFile = Path.Combine(assemblyPath, "config-list.json");
+        ConfigSaveDir = Path.Combine(assemblyPath, "configs");
+        HistoryFile = Path.Combine(assemblyPath, "history.json");
+    }
 
-    public string HistoryFile { get; } = "history.json";
+    public string ConfigIdentityListFile { get; }
+
+    public string ConfigSaveDir { get; }
+
+    public string HistoryFile { get; }
 }
