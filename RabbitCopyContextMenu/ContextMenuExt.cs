@@ -193,7 +193,7 @@ public class ContextMenuExt : IShellExtInit, IContextMenu
                     return "";
                 }
             }).Where(s => s != "");
-            var temp = src.ToList().ConvertAll(input => $"--files \"{input}\"");
+            var temp = src.ToList().ConvertAll(input => $"--files \"{input.Replace('\\', '/')}\"");
             string[] args = ["--open", string.Join(" ", temp)];
             ProcessStartInfo startInfo = new()
             {
