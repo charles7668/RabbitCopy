@@ -1,6 +1,5 @@
 ﻿using System.CommandLine;
 using System.Windows;
-using System.Windows.Forms;
 using Microsoft.Extensions.DependencyInjection;
 using RabbitCopy.Models;
 using RabbitCopy.Services;

@@ -3,12 +3,20 @@ Windows.Win32.Security.TOKEN_ELEVATION_TYPE
 Windows.Win32.UI.WindowsAndMessaging.HWND_TOPMOST
 PROCESS_ACCESS_RIGHTS
 PROCESSINFOCLASS
+CLSCTX
 
 // structure
 Windows.Win32.Security.TOKEN_ELEVATION
 PROCESS_BASIC_INFORMATION
 STARTUPINFOW
 PROCESS_INFORMATION
+HRESULT
+S_OK
+MAX_PATH
+BM_SETSTYLE
+BS_DEFPUSHBUTTON
+WM_APP
+WM_SIZE
 
 // function
 Windows.Win32.Security.GetTokenInformation
@@ -16,3 +24,26 @@ Windows.Win32.System.Threading.OpenProcessToken
 OpenProcess
 NtQueryInformationProcess
 ResumeThread
+CoCreateInstance
+GetDlgItem
+GetWindow
+GetWindowText
+ShowWindow
+EnableWindow
+SendMessage
+GetWindowLong
+SetWindowLong
+CallWindowProc
+PostMessage
+GetWindowRect
+ScreenToClient
+MoveWindow
+
+// COM interface
+IFileDialog
+IFileOpenDialog
+IFileDialogControlEvents
+IOleWindow
+IServiceProvider
+IFolderView
+IFolderView2
