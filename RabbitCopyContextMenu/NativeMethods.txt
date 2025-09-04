@@ -1,0 +1,23 @@
+// enums
+CLIPFORMAT 
+
+// constants
+MAX_PATH
+
+// sturcture
+HRESULT
+S_OK
+MENUITEMINFO
+
+// functions
+ReleaseStgMedium
+DragQueryFile
+GlobalLock
+SHGetPathFromIDList
+InsertMenuItem
+CreatePopupMenu
+DeleteObject
+
+// COM interface
+IShellExtInit
+IContextMenu

@@ -5,8 +5,16 @@ using System.Runtime.InteropServices;
 using System.Runtime.InteropServices.ComTypes;
 using System.Text;
 using System.Text.Json;
-using MS.WindowsAPICodePack.Internal;
+using Windows.Win32;
+using Windows.Win32.Foundation;
+using Windows.Win32.Graphics.Gdi;
+using Windows.Win32.System.Registry;
+using Windows.Win32.UI.Shell;
+using Windows.Win32.UI.Shell.Common;
+using Windows.Win32.UI.WindowsAndMessaging;
 using static RabbitCopyContextMenu.ShellExt;
+using FORMATETC = Windows.Win32.System.Com.FORMATETC;
+using IDataObject = Windows.Win32.System.Com.IDataObject;
 
 namespace RabbitCopyContextMenu;
 
@@ -27,6 +35,7 @@ public class ContextMenuExt : IShellExtInit, IContextMenu
         {
             _menuBitmap = IntPtr.Zero;
         }
+
         _assemblyDir = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) ?? "";
         var configIdentitiesFile = Path.Combine(_assemblyDir, "config-list.json");
         if (!File.Exists(configIdentitiesFile))
@@ -44,59 +53,19 @@ public class ContextMenuExt : IShellExtInit, IContextMenu
         }
     }
 
-    private string _assemblyDir;
-    private readonly List<ConfigIdentity> _configIdentities = [];
-    private readonly List<string> _dstArray = [];
-    private readonly List<string> _srcArray = [];
-    private IntPtr _menuBitmap;
     private const int COPY_MENU_ITEM_ID = 1;
     private const int OPEN_UI_MENU_ITEM_ID = 2;
     private const int PASTE_MENU_ITEM_ID = 3;
     private const int CONFIG_ID_OFFSET = PASTE_MENU_ITEM_ID + 1;
     private static List<string> _copyCandidate = [];
+    private readonly List<ConfigIdentity> _configIdentities = [];
+    private readonly List<string> _dstArray = [];
+    private readonly List<string> _srcArray = [];
 
-    private int RegisterMenuItem(uint id,
-        uint idCmdFirst,
-        string text,
-        bool enabled,
-        IntPtr bitmap,
-        IntPtr subMenu,
-        uint position,
-        IntPtr registerTo)
-    {
-        var sub = new MENUITEMINFO();
-        sub.cbSize = (uint)Marshal.SizeOf(sub);
+    private string _assemblyDir;
+    private IntPtr _menuBitmap;
 
-        var m = MIIM.MIIM_STRING | MIIM.MIIM_FTYPE | MIIM.MIIM_ID | MIIM.MIIM_STATE;
-        if (bitmap != IntPtr.Zero)
-            m |= MIIM.MIIM_BITMAP;
-        if (subMenu != IntPtr.Zero)
-            m |= MIIM.MIIM_SUBMENU;
-        sub.fMask = m;
-
-        sub.wID = idCmdFirst + id;
-        sub.fType = MFT.MFT_STRING;
-        sub.dwTypeData = text;
-        sub.hSubMenu = subMenu;
-        sub.fState = enabled ? MFS.MFS_ENABLED : MFS.MFS_DISABLED;
-        sub.hbmpItem = bitmap;
-
-        if (!InsertMenuItem(registerTo, position, true, ref sub))
-            return Marshal.GetHRForLastWin32Error();
-
-        return 0;
-    }
-
-    /// <summary>
-    /// Queries the context menu for the specified menu handle and command range.
-    /// </summary>
-    /// <param name="hMenu"></param>
-    /// <param name="iMenu"></param>
-    /// <param name="idCmdFirst"></param>
-    /// <param name="idCmdLast"></param>
-    /// <param name="uFlags"></param>
-    /// <returns></returns>
-    public HResult QueryContextMenu(IntPtr hMenu, uint iMenu, uint idCmdFirst, uint idCmdLast, uint uFlags)
+    public HRESULT QueryContextMenu(HMENU hMenu, uint indexMenu, uint idCmdFirst, uint idCmdLast, uint uFlags)
     {
         var cmfFlag = (CMF)uFlags;
         if (_srcArray.Count == 0 && _dstArray.Count == 0 && cmfFlag.HasFlag(CMF.CMF_NORMAL))
@@ -106,19 +75,22 @@ public class ContextMenuExt : IShellExtInit, IContextMenu
             return WinError.MAKE_HRESULT(WinError.SEVERITY_SUCCESS, 0, 0);
 
         uint menuItemCount = 0;
-        var sep = new MENUITEMINFO();
+        var sep = new MENUITEMINFOW();
         sep.cbSize = (uint)Marshal.SizeOf(sep);
-        sep.fMask = MIIM.MIIM_TYPE;
-        sep.fType = MFT.MFT_SEPARATOR;
-        if (!InsertMenuItem(hMenu, menuItemCount++, true, ref sep))
-            return (HResult)Marshal.GetHRForLastWin32Error();
-        var subMenu = CreatePopupMenu();
-        RegisterMenuItem(0, idCmdFirst, "RabbitCopy", true, _menuBitmap, subMenu, menuItemCount++, hMenu);
+        sep.fMask = MENU_ITEM_MASK.MIIM_TYPE;
+        sep.fType = MENU_ITEM_TYPE.MFT_SEPARATOR;
+        var menuHandle = new GlobalFreeSafeHandle(hMenu);
+        if (!PInvoke.InsertMenuItem(menuHandle, menuItemCount++, true, sep))
+            return (HRESULT)Marshal.GetHRForLastWin32Error();
+        var subMenu = PInvoke.CreatePopupMenu();
+        var menuBitmap = new HBITMAP(_menuBitmap);
+        RegisterMenuItem(0, idCmdFirst, "RabbitCopy", true, menuBitmap, subMenu, menuItemCount++, hMenu);
 
         uint subMenuPos = 0;
         var enableCopy = _srcArray.Count > 0;
-        RegisterMenuItem(COPY_MENU_ITEM_ID, idCmdFirst, "Copy", enableCopy, _menuBitmap, IntPtr.Zero, subMenuPos++, subMenu);
-        RegisterMenuItem(OPEN_UI_MENU_ITEM_ID, idCmdFirst, "GUI", enableCopy, _menuBitmap, IntPtr.Zero, subMenuPos++,
+        RegisterMenuItem(COPY_MENU_ITEM_ID, idCmdFirst, "Copy", enableCopy, menuBitmap, HMENU.Null, subMenuPos++,
+            subMenu);
+        RegisterMenuItem(OPEN_UI_MENU_ITEM_ID, idCmdFirst, "GUI", enableCopy, menuBitmap, HMENU.Null, subMenuPos++,
             subMenu);
 
         var selectedSrc = "";
@@ -126,7 +98,7 @@ public class ContextMenuExt : IShellExtInit, IContextMenu
         {
             try
             {
-                FileAttributes attributes = File.GetAttributes(_srcArray[0]);
+                var attributes = File.GetAttributes(_srcArray[0]);
                 if (attributes.HasFlag(FileAttributes.Directory))
                     selectedSrc = _srcArray[0];
             }
@@ -138,46 +110,42 @@ public class ContextMenuExt : IShellExtInit, IContextMenu
 
         if (!string.IsNullOrEmpty(selectedSrc) || (_srcArray.Count == 0 && _dstArray.Count == 1))
         {
-            RegisterMenuItem(PASTE_MENU_ITEM_ID, idCmdFirst, "Paste", true, _menuBitmap, IntPtr.Zero, subMenuPos++,
+            RegisterMenuItem(PASTE_MENU_ITEM_ID, idCmdFirst, "Paste", true, menuBitmap, HMENU.Null, subMenuPos++,
                 subMenu);
             for (var i = 0; i < _configIdentities.Count; i++)
-            {
                 RegisterMenuItem((uint)(CONFIG_ID_OFFSET + i), idCmdFirst,
-                    "Paste with conf - " + _configIdentities[i].Name, true, IntPtr.Zero,
-                    IntPtr.Zero,
+                    "Paste with conf - " + _configIdentities[i].Name, true, HBITMAP.Null,
+                    HMENU.Null,
                     subMenuPos++, subMenu);
-            }
         }
 
-        sep = new MENUITEMINFO();
+        sep = new MENUITEMINFOW();
         sep.cbSize = (uint)Marshal.SizeOf(sep);
-        sep.fMask = MIIM.MIIM_TYPE;
-        sep.fType = MFT.MFT_SEPARATOR;
-        if (!InsertMenuItem(hMenu, menuItemCount, true, ref sep))
-            return (HResult)Marshal.GetHRForLastWin32Error();
+        sep.fMask = MENU_ITEM_MASK.MIIM_TYPE;
+        sep.fType = MENU_ITEM_TYPE.MFT_SEPARATOR;
+        if (!PInvoke.InsertMenuItem(menuHandle, menuItemCount, true, sep))
+            return (HRESULT)Marshal.GetHRForLastWin32Error();
 
         return WinError.MAKE_HRESULT(WinError.SEVERITY_SUCCESS, 0, subMenuPos + 1);
     }
 
-    public void InvokeCommand(IntPtr pici)
+    public unsafe HRESULT InvokeCommand(CMINVOKECOMMANDINFO* pici)
     {
-        var ici = (CMINVOKECOMMANDINFO?)Marshal.PtrToStructure(pici, typeof(CMINVOKECOMMANDINFO));
+        var ici = pici;
         if (ici == null)
-            return;
+            return HRESULT.S_OK;
         var location = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
-        if (ici.Value.verb == COPY_MENU_ITEM_ID)
+        if ((IntPtr)ici->lpVerb.Value == COPY_MENU_ITEM_ID)
         {
             _copyCandidate.Clear();
             _copyCandidate.AddRange(_srcArray);
         }
-        else if (ici.Value.verb == PASTE_MENU_ITEM_ID)
-        {
+        else if ((IntPtr)ici->lpVerb.Value == PASTE_MENU_ITEM_ID)
             StartPaste(null);
-        }
-        else if (ici.Value.verb == OPEN_UI_MENU_ITEM_ID)
+        else if ((IntPtr)ici->lpVerb.Value == OPEN_UI_MENU_ITEM_ID)
         {
             if (_srcArray.Count == 0 || location == null)
-                return;
+                return HRESULT.S_OK;
             var exePath = Path.Combine(location, "RabbitCopy.exe");
             var src = _srcArray.Select(s =>
             {
@@ -203,9 +171,10 @@ public class ContextMenuExt : IShellExtInit, IContextMenu
                 CreateNoWindow = true
             };
             Process.Start(startInfo);
-        }else if (ici.Value.verb >= CONFIG_ID_OFFSET)
+        }
+        else if ((IntPtr)ici->lpVerb.Value >= CONFIG_ID_OFFSET)
         {
-            var itemIndex = ici.Value.verb - CONFIG_ID_OFFSET;
+            var itemIndex = (IntPtr)ici->lpVerb.Value - CONFIG_ID_OFFSET;
             StartPaste(_configIdentities[(int)itemIndex].Guid);
         }
 
@@ -230,9 +199,8 @@ public class ContextMenuExt : IShellExtInit, IContextMenu
             }).Where(s => s != "");
             var temp = src.ToList().ConvertAll(input => $"--files \"{input.Replace('\\', '/')}\"");
             if (guid != null)
-            {
                 temp.Add($"--guid {guid}");
-            }
+
             string[] args = ["--dest", "\"" + _dstArray[0].Replace('\\', '/') + "\"", string.Join(" ", temp)];
             ProcessStartInfo startInfo = new()
             {
@@ -244,47 +212,49 @@ public class ContextMenuExt : IShellExtInit, IContextMenu
             };
             Process.Start(startInfo);
         }
+
+        return HRESULT.S_OK;
     }
 
-    public void GetCommandString(UIntPtr idCmd, uint uFlags, IntPtr pReserved, StringBuilder pszName, uint cchMax)
+    public unsafe HRESULT GetCommandString(UIntPtr idCmd, uint uType, uint* pReserved, PSTR pszName, uint cchMax)
     {
+        return HRESULT.S_OK;
     }
 
-    /// <summary>
-    /// Initializes the context menu extension with the specified folder, data object, and registry key.
-    /// </summary>
-    /// <param name="pidlFolder"></param>
-    /// <param name="pDataObj"></param>
-    /// <param name="hKeyProgId"></param>
-    public void Initialize(IntPtr pidlFolder, IntPtr pDataObj, IntPtr hKeyProgId)
+    public unsafe HRESULT Initialize(ITEMIDLIST* pidlFolder, IDataObject? pDataObj,
+        HKEY hkeyProgID)
     {
-        if (pDataObj != IntPtr.Zero)
+        var bufferArray = new char[PInvoke.MAX_PATH];
+        if (pDataObj != null)
         {
             var fe = new FORMATETC
             {
-                cfFormat = (short)CLIPFORMAT.CF_HDROP,
-                ptd = IntPtr.Zero,
-                dwAspect = DVASPECT.DVASPECT_CONTENT,
+                cfFormat = (ushort)CLIPFORMAT.CF_HDROP,
+                ptd = null,
+                dwAspect = (uint)DVASPECT.DVASPECT_CONTENT,
                 lindex = -1,
-                tymed = TYMED.TYMED_HGLOBAL
+                tymed = (uint)TYMED.TYMED_HGLOBAL
             };
-            STGMEDIUM stm;
-            var dataObject = (IDataObject)Marshal.GetObjectForIUnknown(pDataObj);
-            dataObject.GetData(ref fe, out stm);
+            pDataObj.GetData(fe, out var stm);
 
             try
             {
-                var hDrop = stm.unionmember;
-                if (hDrop == IntPtr.Zero)
-                    throw new ArgumentException();
+                var hDrop = (HDROP)PInvoke.GlobalLock(stm.u.hGlobal);
 
-                var nFiles = DragQueryFile(hDrop, uint.MaxValue, null, 0);
+                var nFiles = PInvoke.DragQueryFile(hDrop, uint.MaxValue, null, 0);
                 for (uint i = 0; i < nFiles; i++)
                 {
-                    StringBuilder pathBuilder = new(260);
-                    if (DragQueryFile(hDrop, i, pathBuilder, pathBuilder.Capacity) == 0)
+                    uint textLen;
+                    fixed (char* buffetPt = bufferArray)
+                    {
+                        PWSTR buffer = new(buffetPt);
+                        textLen = PInvoke.DragQueryFile(hDrop, i, buffer, PInvoke.MAX_PATH);
+                    }
+
+                    if (textLen == 0)
                         continue;
-                    _srcArray.Add(pathBuilder.ToString());
+
+                    _srcArray.Add(new string(bufferArray, 0, (int)textLen));
                 }
 
 
@@ -293,36 +263,81 @@ public class ContextMenuExt : IShellExtInit, IContextMenu
             }
             finally
             {
-                ReleaseStgMedium(ref stm);
+                PInvoke.ReleaseStgMedium(ref stm);
             }
         }
 
-        StringBuilder folderPathBuilder = new(260);
-        var res = SHGetPathFromIDListW(pidlFolder, folderPathBuilder);
-        if (pidlFolder != IntPtr.Zero && res)
+        fixed (char* bufferPtr = bufferArray)
         {
-            _dstArray.Add(folderPathBuilder.ToString());
+            var buffer = new PWSTR(bufferPtr);
+            var res = PInvoke.SHGetPathFromIDList(pidlFolder, buffer);
+            if (pidlFolder != null && res == true)
+                _dstArray.Add(buffer.ToString());
+            else if (_srcArray.Count == 1)
+            {
+                var attributes = File.GetAttributes(_srcArray[0]);
+                if (attributes.HasFlag(FileAttributes.Directory))
+                    _dstArray.Add(_srcArray[0]);
+            }
         }
-        else if (_srcArray.Count == 1)
-        {
-            var attributes = File.GetAttributes(_srcArray[0]);
-            if (attributes.HasFlag(FileAttributes.Directory))
-                _dstArray.Add(_srcArray[0]);
-        }
+
+        return HRESULT.S_OK;
     }
 
     ~ContextMenuExt()
     {
         if (_menuBitmap != IntPtr.Zero)
         {
-            DeleteObject(_menuBitmap);
+            PInvoke.DeleteObject(new HGDIOBJ(_menuBitmap));
             _menuBitmap = IntPtr.Zero;
         }
+    }
+
+    public void InvokeCommand(IntPtr pici)
+    {
     }
 
     [ComRegisterFunction]
     public static void Register(Type t)
     {
+    }
+
+    private unsafe int RegisterMenuItem(uint id,
+        uint idCmdFirst,
+        string text,
+        bool enabled,
+        HBITMAP bitmap,
+        HMENU subMenu,
+        uint position,
+        HMENU registerTo)
+    {
+        var sub = new MENUITEMINFOW();
+        sub.cbSize = (uint)Marshal.SizeOf(sub);
+
+        var m = MENU_ITEM_MASK.MIIM_STRING | MENU_ITEM_MASK.MIIM_FTYPE | MENU_ITEM_MASK.MIIM_ID |
+                MENU_ITEM_MASK.MIIM_STATE;
+        if (bitmap != IntPtr.Zero)
+            m |= MENU_ITEM_MASK.MIIM_BITMAP;
+        if (subMenu != IntPtr.Zero)
+            m |= MENU_ITEM_MASK.MIIM_SUBMENU;
+        sub.fMask = m;
+
+        sub.wID = idCmdFirst + id;
+        sub.fType = MENU_ITEM_TYPE.MFT_STRING;
+        fixed (char* textPtr = text)
+        {
+            sub.dwTypeData = textPtr;
+        }
+
+        sub.hSubMenu = subMenu;
+        sub.fState = enabled ? MENU_ITEM_STATE.MFS_ENABLED : MENU_ITEM_STATE.MFS_DISABLED;
+        sub.hbmpItem = bitmap;
+
+        var registerToHandle = new GlobalFreeSafeHandle(registerTo);
+        if (!PInvoke.InsertMenuItem(registerToHandle, position, true, sub))
+            return Marshal.GetHRForLastWin32Error();
+
+        return 0;
     }
 
     [ComUnregisterFunction]
