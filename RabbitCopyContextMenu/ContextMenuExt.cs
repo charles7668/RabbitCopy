@@ -12,7 +12,6 @@ using Windows.Win32.System.Registry;
 using Windows.Win32.UI.Shell;
 using Windows.Win32.UI.Shell.Common;
 using Windows.Win32.UI.WindowsAndMessaging;
-using static RabbitCopyContextMenu.ShellExt;
 using FORMATETC = Windows.Win32.System.Com.FORMATETC;
 using IDataObject = Windows.Win32.System.Com.IDataObject;
 
@@ -67,11 +66,11 @@ public class ContextMenuExt : IShellExtInit, IContextMenu
 
     public HRESULT QueryContextMenu(HMENU hMenu, uint indexMenu, uint idCmdFirst, uint idCmdLast, uint uFlags)
     {
-        var cmfFlag = (CMF)uFlags;
-        if (_srcArray.Count == 0 && _dstArray.Count == 0 && cmfFlag.HasFlag(CMF.CMF_NORMAL))
+        var cmfFlag = uFlags;
+        if (_srcArray.Count == 0 && _dstArray.Count == 0 && (cmfFlag & PInvoke.CMF_NORMAL) > 0)
             return WinError.MAKE_HRESULT(WinError.SEVERITY_SUCCESS, 0, 0);
 
-        if (cmfFlag.HasFlag(CMF.CMF_VERBSONLY | CMF.CMF_DEFAULTONLY))
+        if ((cmfFlag & (PInvoke.CMF_VERBSONLY | PInvoke.CMF_DEFAULTONLY)) != 0)
             return WinError.MAKE_HRESULT(WinError.SEVERITY_SUCCESS, 0, 0);
 
         uint menuItemCount = 0;
@@ -229,7 +228,7 @@ public class ContextMenuExt : IShellExtInit, IContextMenu
         {
             var fe = new FORMATETC
             {
-                cfFormat = (ushort)CLIPFORMAT.CF_HDROP,
+                cfFormat = (ushort)Windows.Win32.System.Ole.CLIPBOARD_FORMAT.CF_HDROP,
                 ptd = null,
                 dwAspect = (uint)DVASPECT.DVASPECT_CONTENT,
                 lindex = -1,
