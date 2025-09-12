@@ -71,7 +71,6 @@ public partial class MainWindowViewModel : ObservableObject
         var elevateService = App.ServiceProvider.GetRequiredService<ElevateService>();
         _elevateVisibility = elevateService.CanElevate() ? Visibility.Visible : Visibility.Hidden;
         _windowTitle = $"RabbitCopy v{version}";
-        _iconUpdater = App.ServiceProvider.GetRequiredService<IconUpdater>();
         _taskbarControlService = App.ServiceProvider.GetRequiredService<TaskbarControlService>();
         _copyModeItems =
         [
@@ -122,7 +121,6 @@ public partial class MainWindowViewModel : ObservableObject
         }
     }
 
-    private readonly IconUpdater _iconUpdater;
     private readonly TaskbarControlService _taskbarControlService;
 
     private readonly RunOptions? _runOptions;
@@ -818,7 +816,7 @@ public partial class MainWindowViewModel : ObservableObject
 
         void UpdateIcon(byte[] imageData)
         {
-            _iconUpdater.UpdateTaskbarIcon(_window!, imageData);
+            _taskbarControlService.UpdateTaskbarIcon(_window!, imageData);
         }
     }
 

@@ -86,7 +86,6 @@ public partial class App
         var services = new ServiceCollection();
         services.AddSingleton<AppPathService, AppPathService>();
         services.AddSingleton<ConfigService, ConfigService>();
-        services.AddSingleton<IconUpdater, IconUpdater>();
         services.AddSingleton<HistoryService, HistoryService>();
         services.AddSingleton<ElevateService, ElevateService>();
         services.AddSingleton<TaskbarControlService, TaskbarControlService>();
