@@ -8,6 +8,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Media.Imaging;
+using Windows.Win32.UI.Shell;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
@@ -71,6 +72,7 @@ public partial class MainWindowViewModel : ObservableObject
         _elevateVisibility = elevateService.CanElevate() ? Visibility.Visible : Visibility.Hidden;
         _windowTitle = $"RabbitCopy v{version}";
         _iconUpdater = App.ServiceProvider.GetRequiredService<IconUpdater>();
+        _taskbarControlService = App.ServiceProvider.GetRequiredService<TaskbarControlService>();
         _copyModeItems =
         [
             new CopyModeItem
@@ -121,6 +123,7 @@ public partial class MainWindowViewModel : ObservableObject
     }
 
     private readonly IconUpdater _iconUpdater;
+    private readonly TaskbarControlService _taskbarControlService;
 
     private readonly RunOptions? _runOptions;
 
@@ -795,15 +798,19 @@ public partial class MainWindowViewModel : ObservableObject
         {
             case State.IDLE:
                 UpdateIcon(IconResource.rabbit_32x32);
+                _taskbarControlService.SetTaskbarProgress(_window, TBPFLAG.TBPF_NOPROGRESS);
                 break;
             case State.RUNNING:
                 UpdateIcon(IconResource.rabbit_yellow_32x32);
+                _taskbarControlService.SetTaskbarProgress(_window, TBPFLAG.TBPF_INDETERMINATE);
                 break;
             case State.SUCCESS:
                 UpdateIcon(IconResource.rabbit_green_32x32);
+                _taskbarControlService.SetTaskbarProgress(_window, TBPFLAG.TBPF_NOPROGRESS);
                 break;
             case State.ERROR:
                 UpdateIcon(IconResource.rabbit_red_32x32);
+                _taskbarControlService.SetTaskbarProgress(_window, TBPFLAG.TBPF_ERROR);
                 break;
             default:
                 throw new ArgumentOutOfRangeException(nameof(state), state, null);

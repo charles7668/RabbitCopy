@@ -89,6 +89,7 @@ public partial class App
         services.AddSingleton<IconUpdater, IconUpdater>();
         services.AddSingleton<HistoryService, HistoryService>();
         services.AddSingleton<ElevateService, ElevateService>();
+        services.AddSingleton<TaskbarControlService, TaskbarControlService>();
         ServiceProvider = services.BuildServiceProvider();
     }
 }

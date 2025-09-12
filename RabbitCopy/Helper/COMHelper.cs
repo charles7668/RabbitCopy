@@ -5,6 +5,7 @@ public static class COMHelper
     public static class CLSID
     {
         public const string FILE_OPEN_DIALOG = "DC1C5A9C-E88A-4DDE-A5A1-60F82A20AEF7";
+        public const string TASKBAR_LIST = "56FDF344-FD6D-11D0-958A-006097C9A090";
     }
 
     public static class IID
@@ -14,5 +15,6 @@ public static class COMHelper
         public const string FOLDER_VIEW = "CDE725B0-CCC9-4519-917E-325D72FAB4CE";
         public const string FOLDER_VIEW2 = "1AF3A467-214F-4298-908E-06B03E0B39F9";
         public const string SHELL_ITEM_ARRAY = "B63EA76D-1F85-456F-A19C-48159EFA858B";
+        public const string TASKBAR_LIST = "EA1AFB91-9E28-4B86-90E9-9E9F8A5EEFAF";
     }
 }

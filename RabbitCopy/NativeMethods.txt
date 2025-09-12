@@ -47,3 +47,4 @@ IOleWindow
 IServiceProvider
 IFolderView
 IFolderView2
+ITaskbarList3
