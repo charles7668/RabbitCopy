@@ -193,7 +193,15 @@ public partial class FileOpenDialog(FileDialogFlag fileDialogFlag)
             pDialog.Show(HWND.Null);
             if (SelectedTargets.Count != 0)
                 return true;
-            pDialog.GetResult(out var selectedShellItem);
+            IShellItem? selectedShellItem = null;
+            try
+            {
+                pDialog.GetResult(out selectedShellItem);
+            }
+            catch
+            {
+                // ignore
+            }
             if (selectedShellItem != null)
             {
                 selectedShellItem.GetDisplayName(SIGDN.SIGDN_FILESYSPATH, out var selectedFile);
