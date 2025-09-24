@@ -231,6 +231,11 @@ public partial class MainWindowViewModel : ObservableObject
     [ObservableProperty]
     private string _windowTitle;
 
+    [ObservableProperty]
+    [NotifyCanExecuteChangedFor(nameof(ExecuteCopyCommand))]
+    [NotifyCanExecuteChangedFor(nameof(DryRunCopyCommand))]
+    private bool _isExecuting;
+
     private async Task Copy(bool dryRun)
     {
         if (string.IsNullOrWhiteSpace(SrcText) || string.IsNullOrWhiteSpace(DestText))
@@ -440,10 +445,20 @@ public partial class MainWindowViewModel : ObservableObject
         }
     }
 
-    [RelayCommand]
+    private bool CanExecuteCopy() => !IsExecuting;
+
+    [RelayCommand(CanExecute = nameof(CanExecuteCopy))]
     private async Task DryRunCopy()
     {
-        await Copy(true);
+        IsExecuting = true;
+        try
+        {
+            await Copy(true);
+        }
+        finally
+        {
+            IsExecuting = false;
+        }
     }
 
     [RelayCommand]
@@ -460,10 +475,18 @@ public partial class MainWindowViewModel : ObservableObject
         WeakReferenceMessenger.Default.Send<ElevateRequestMessage>();
     }
 
-    [RelayCommand]
+    [RelayCommand(CanExecute = nameof(CanExecuteCopy))]
     private async Task ExecuteCopy()
     {
-        await Copy(false);
+        IsExecuting = true;
+        try
+        {
+            await Copy(false);
+        }
+        finally
+        {
+            IsExecuting = false;
+        }
     }
 
     private FileAttributes GetSelectedFileAttributes(FileAttributesSelectWindowViewModel vm)
