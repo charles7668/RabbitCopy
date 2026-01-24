@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics;
+using System.IO;
 using System.Windows;
 using System.Windows.Controls.Primitives;
 using CommunityToolkit.Mvvm.Messaging;
@@ -71,5 +72,51 @@ public partial class MainWindow
         SrcHistoryContextMenu.PlacementTarget = (Button)sender;
         SrcHistoryContextMenu.Placement = PlacementMode.Bottom;
         SrcHistoryContextMenu.IsOpen = true;
+    }
+
+    private void SrcTextBox_OnPreviewDragOver(object sender, DragEventArgs e)
+    {
+        e.Effects = e.Data.GetDataPresent(DataFormats.FileDrop)
+            ? DragDropEffects.Link
+            : DragDropEffects.None;
+        e.Handled = true;
+    }
+
+    private void SrcTextBox_OnDrop(object sender, DragEventArgs e)
+    {
+        if (!e.Data.GetDataPresent(DataFormats.FileDrop))
+        {
+            return;
+        }
+
+        if (e.Data.GetData(DataFormats.FileDrop) is not string[] files || files.Length == 0)
+        {
+            return;
+        }
+
+        var appendBackslash = files.Select(src =>
+        {
+            try
+            {
+                var attributes = File.GetAttributes(src);
+                if (attributes.HasFlag(FileAttributes.Directory))
+                {
+                    src = src.TrimEnd('\\') + "\\";
+                }
+
+                return src;
+            }
+            catch
+            {
+                // ignore
+            }
+
+            return "";
+        }).Where(src => !string.IsNullOrWhiteSpace(src));
+
+        if (DataContext is MainWindowViewModel vm)
+        {
+            vm.SrcText = string.Join("\n", appendBackslash);
+        }
     }
 }

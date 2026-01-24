@@ -88,7 +88,7 @@
                 </MenuItem>
             </Menu>
             <Menu Grid.Column="2" Visibility="{Binding ElevateVisibility}">
-                <MenuItem Header="Elevate" Command="{Binding ElevateCommand}"/>
+                <MenuItem Header="Elevate" Command="{Binding ElevateCommand}" />
             </Menu>
         </Grid>
         <Grid>
@@ -113,6 +113,9 @@
                                  VerticalAlignment="Center"
                                  AcceptsReturn="True"
                                  AcceptsTab="True"
+                                 AllowDrop="True"
+                                 PreviewDragOver="SrcTextBox_OnPreviewDragOver"
+                                 Drop="SrcTextBox_OnDrop"
                                  TextWrapping="Wrap"
                                  VerticalScrollBarVisibility="Auto"
                                  HorizontalScrollBarVisibility="Auto"
