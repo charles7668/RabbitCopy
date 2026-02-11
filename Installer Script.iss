@@ -9,7 +9,7 @@
 ; (To generate a new GUID, click Tools | Generate GUID inside the IDE.)
 AppId={{{#id}}
 AppName=RabbitCopy
-AppVersion=1.2.0
+AppVersion=1.3.0
 AppPublisher=charles
 AppPublisherURL=https://github.com/charles7668
 AppSupportURL=https://github.com/charles7668/RabbitCopy
