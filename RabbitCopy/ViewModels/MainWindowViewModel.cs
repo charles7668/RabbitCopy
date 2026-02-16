@@ -359,6 +359,10 @@ public partial class MainWindowViewModel : ObservableObject
         var historyService = App.ServiceProvider.GetRequiredService<HistoryService>();
         historyService.UpdateHistory(srcList, [DestText]);
 
+        historyService.LoadHistory(out var srcHistories, out var dstHistories);
+        SrcHistory = new ObservableCollection<string>(srcHistories);
+        DstHistory = new ObservableCollection<string>(dstHistories);
+
         WeakReferenceMessenger.Default.Send<ScrollToEndRequestMessage>();
 
         return;
