@@ -1,4 +1,4 @@
-﻿using System.Collections.ObjectModel;
+using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
@@ -688,7 +688,7 @@ public partial class MainWindowViewModel : ObservableObject
         if (win.ShowDialog() != true)
             return;
         var configListFile = appPathService.ConfigIdentityListFile;
-        var backupConfigListFile = "bak-" + configListFile;
+        var backupConfigListFile = Path.Combine(Path.GetDirectoryName(configListFile) ?? string.Empty, "bak-" + Path.GetFileName(configListFile));
         try
         {
             if (File.Exists(configListFile))
