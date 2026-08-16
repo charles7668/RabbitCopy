@@ -17,7 +17,7 @@ ReleaseStgMedium
 DragQueryFile
 GlobalLock
 GlobalUnlock
-SHGetPathFromIDList
+SHGetPathFromIDListEx
 InsertMenuItem
 CreatePopupMenu
 DeleteObject

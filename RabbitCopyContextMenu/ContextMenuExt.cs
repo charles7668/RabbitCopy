@@ -56,6 +56,7 @@ public class ContextMenuExt : IShellExtInit, IContextMenu
     private const int OPEN_UI_MENU_ITEM_ID = 2;
     private const int PASTE_MENU_ITEM_ID = 3;
     private const int CONFIG_ID_OFFSET = PASTE_MENU_ITEM_ID + 1;
+    private const int PATH_BUFFER_LENGTH = 32768;
     private static List<string> _copyCandidate = [];
     private readonly List<ConfigIdentity> _configIdentities = [];
     private readonly List<string> _dstArray = [];
@@ -278,7 +279,6 @@ public class ContextMenuExt : IShellExtInit, IContextMenu
     private unsafe HRESULT InitializeCore(ITEMIDLIST* pidlFolder, IDataObject? pDataObj,
         HKEY hkeyProgID)
     {
-        var bufferArray = new char[PInvoke.MAX_PATH];
         if (pDataObj != null)
         {
             var fe = new FORMATETC
@@ -300,11 +300,15 @@ public class ContextMenuExt : IShellExtInit, IContextMenu
                     var nFiles = PInvoke.DragQueryFile(hDrop, uint.MaxValue, null, 0);
                     for (uint i = 0; i < nFiles; i++)
                     {
-                        uint textLen;
-                        fixed (char* buffetPt = bufferArray)
+                        var textLen = PInvoke.DragQueryFile(hDrop, i, null, 0);
+                        if (textLen == 0)
+                            continue;
+
+                        var bufferArray = new char[textLen + 1];
+                        fixed (char* bufferPtr = bufferArray)
                         {
-                            PWSTR buffer = new(buffetPt);
-                            textLen = PInvoke.DragQueryFile(hDrop, i, buffer, PInvoke.MAX_PATH);
+                            PWSTR buffer = new(bufferPtr);
+                            textLen = PInvoke.DragQueryFile(hDrop, i, buffer, (uint)bufferArray.Length);
                         }
 
                         if (textLen == 0)
@@ -328,10 +332,11 @@ public class ContextMenuExt : IShellExtInit, IContextMenu
             }
         }
 
-        fixed (char* bufferPtr = bufferArray)
+        var pathBuffer = new char[PATH_BUFFER_LENGTH];
+        fixed (char* bufferPtr = pathBuffer)
         {
             var buffer = new PWSTR(bufferPtr);
-            if (pidlFolder != null && PInvoke.SHGetPathFromIDList(pidlFolder, buffer) == true)
+            if (pidlFolder != null && PInvoke.SHGetPathFromIDListEx(pidlFolder, buffer, (uint)pathBuffer.Length, 0) == true)
                 _dstArray.Add(buffer.ToString());
             else if (_srcArray.Count == 1)
             {
