@@ -157,15 +157,17 @@ public class ContextMenuExt : IShellExtInit, IContextMenu
         var ici = pici;
         if (ici == null)
             return HRESULT.S_OK;
+        if (!TryGetCommandId(ici, out var commandId))
+            return HRESULT.S_OK;
         var location = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
-        if ((IntPtr)ici->lpVerb.Value == COPY_MENU_ITEM_ID)
+        if (commandId == COPY_MENU_ITEM_ID)
         {
             _copyCandidate.Clear();
             _copyCandidate.AddRange(_srcArray);
         }
-        else if ((IntPtr)ici->lpVerb.Value == PASTE_MENU_ITEM_ID)
+        else if (commandId == PASTE_MENU_ITEM_ID)
             StartPaste(null);
-        else if ((IntPtr)ici->lpVerb.Value == OPEN_UI_MENU_ITEM_ID)
+        else if (commandId == OPEN_UI_MENU_ITEM_ID)
         {
             if (_srcArray.Count == 0 || location == null)
                 return HRESULT.S_OK;
@@ -195,10 +197,11 @@ public class ContextMenuExt : IShellExtInit, IContextMenu
             };
             Process.Start(startInfo);
         }
-        else if ((IntPtr)ici->lpVerb.Value >= CONFIG_ID_OFFSET)
+        else if (commandId >= CONFIG_ID_OFFSET)
         {
-            var itemIndex = (IntPtr)ici->lpVerb.Value - CONFIG_ID_OFFSET;
-            StartPaste(_configIdentities[(int)itemIndex].Guid);
+            var itemIndex = commandId - CONFIG_ID_OFFSET;
+            if (itemIndex < _configIdentities.Count)
+                StartPaste(_configIdentities[itemIndex].Guid);
         }
 
         void StartPaste(string? guid)
@@ -237,6 +240,19 @@ public class ContextMenuExt : IShellExtInit, IContextMenu
         }
 
         return HRESULT.S_OK;
+    }
+
+    private static unsafe bool TryGetCommandId(CMINVOKECOMMANDINFO* commandInfo, out int commandId)
+    {
+        var verbValue = unchecked((ulong)(IntPtr)commandInfo->lpVerb.Value);
+        if ((verbValue & 0xFFFFFFFFFFFF0000UL) != 0)
+        {
+            commandId = 0;
+            return false;
+        }
+
+        commandId = (int)(verbValue & 0xFFFF);
+        return true;
     }
 
     public unsafe HRESULT GetCommandString(UIntPtr idCmd, uint uType, uint* pReserved, PSTR pszName, uint cchMax)
