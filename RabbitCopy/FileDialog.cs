@@ -1,4 +1,4 @@
-﻿using System.Diagnostics.CodeAnalysis;
+using System.Diagnostics.CodeAnalysis;
 using System.Drawing;
 using System.Runtime.InteropServices;
 using Windows.Win32;
@@ -181,6 +181,7 @@ public partial class FileOpenDialog(FileDialogFlag fileDialogFlag)
         options = options |
                   FILEOPENDIALOGOPTIONS.FOS_FORCEFILESYSTEM |
                   FILEOPENDIALOGOPTIONS.FOS_FILEMUSTEXIST |
+                  FILEOPENDIALOGOPTIONS.FOS_NOCHANGEDIR |
                   (fileDialogFlag.HasFlag(FileDialogFlag.PICK_FOLDER) ? FILEOPENDIALOGOPTIONS.FOS_PICKFOLDERS : 0) |
                   (fileDialogFlag.HasFlag(FileDialogFlag.MULTI_SELECT)
                       ? FILEOPENDIALOGOPTIONS.FOS_ALLOWMULTISELECT
