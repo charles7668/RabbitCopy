@@ -194,7 +194,8 @@ public class ContextMenuExt : IShellExtInit, IContextMenu
                 FileName = exePath,
                 Arguments = string.Join(" ", args),
                 UseShellExecute = true,
-                CreateNoWindow = true
+                CreateNoWindow = true,
+                WorkingDirectory = _assemblyDir
             };
             Process.Start(startInfo);
         }

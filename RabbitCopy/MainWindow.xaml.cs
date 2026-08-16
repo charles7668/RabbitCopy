@@ -31,7 +31,8 @@ public partial class MainWindow
                     FileName = Process.GetCurrentProcess().MainModule!.FileName,
                     Verb = "runas",
                     UseShellExecute = true,
-                    CreateNoWindow = false
+                    CreateNoWindow = false,
+                    WorkingDirectory = AppContext.BaseDirectory
                 };
                 Process.Start(startInfo);
             }));
@@ -54,7 +55,8 @@ public partial class MainWindow
                     FileName = Process.GetCurrentProcess().MainModule!.FileName,
                     Verb = "runas",
                     UseShellExecute = true,
-                    CreateNoWindow = false
+                    CreateNoWindow = false,
+                    WorkingDirectory = AppContext.BaseDirectory
                 };
                 Process.Start(startInfo);
             }));

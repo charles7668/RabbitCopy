@@ -18,6 +18,8 @@ public partial class App
     {
         base.OnStartup(e);
 
+        System.IO.Directory.SetCurrentDirectory(AppContext.BaseDirectory);
+
         PrepareServices();
 
         if (e.Args.Length > 0)

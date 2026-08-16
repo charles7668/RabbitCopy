@@ -29,7 +29,8 @@ public class RoboCopy
             RedirectStandardOutput = true,
             RedirectStandardError = true,
             UseShellExecute = false,
-            CreateNoWindow = true
+            CreateNoWindow = true,
+            WorkingDirectory = AppContext.BaseDirectory
         };
         using var proc = new Process
         {

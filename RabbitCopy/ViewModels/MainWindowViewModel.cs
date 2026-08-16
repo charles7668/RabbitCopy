@@ -643,7 +643,8 @@ public partial class MainWindowViewModel : ObservableObject
     {
         ProcessStartInfo startInfo = new()
         {
-            FileName = "RabbitCopyInstaller.exe"
+            FileName = "RabbitCopyInstaller.exe",
+            WorkingDirectory = AppContext.BaseDirectory
         };
         try
         {
