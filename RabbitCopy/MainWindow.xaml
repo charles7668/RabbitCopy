@@ -182,7 +182,8 @@
                             <hc:TextBox Name="TxtLog"
                                         Height="200" IsReadOnly="True"
                                         Text="{Binding CopyLog}"
-                                        TextWrapping="Wrap" />
+                                        TextWrapping="Wrap"
+                                        VerticalScrollBarVisibility="Visible" />
                             <GroupBox Background="GhostWhite" Header="Throttling" Style="{StaticResource GroupBoxTab}">
                                 <hc:SimpleStackPanel>
                                     <CheckBox IsChecked="{Binding EnableThrottling}">Enable Throttling</CheckBox>
