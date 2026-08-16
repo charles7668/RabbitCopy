@@ -31,7 +31,7 @@ public class RoboCopy
             UseShellExecute = false,
             CreateNoWindow = true
         };
-        var proc = new Process
+        using var proc = new Process
         {
             StartInfo = startInfo
         };
@@ -46,17 +46,21 @@ public class RoboCopy
                 OnErrorReceive?.Invoke(args.Data);
         };
         proc.Start();
-        Task.Factory.StartNew(() =>
+        using var cancellationRegistration = cancellationToken.Register(() =>
         {
-            while (!proc.HasExited)
+            try
             {
-                if (cancellationToken.IsCancellationRequested)
-                    proc.Kill();
-                Thread.Sleep(100);
+                if (!proc.HasExited)
+                    proc.Kill(true);
             }
-        }, TaskCreationOptions.LongRunning);
+            catch (InvalidOperationException)
+            {
+                // The process may have already exited between HasExited and Kill.
+            }
+        });
         proc.BeginOutputReadLine();
         proc.BeginErrorReadLine();
+        proc.WaitForExit();
         proc.WaitForExit();
         return Task.CompletedTask;
     }
