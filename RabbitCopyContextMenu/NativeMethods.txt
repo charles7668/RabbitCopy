@@ -16,6 +16,7 @@ MENUITEMINFO
 ReleaseStgMedium
 DragQueryFile
 GlobalLock
+GlobalUnlock
 SHGetPathFromIDList
 InsertMenuItem
 CreatePopupMenu

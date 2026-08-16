@@ -295,25 +295,32 @@ public class ContextMenuExt : IShellExtInit, IContextMenu
             {
                 var hDrop = (HDROP)PInvoke.GlobalLock(stm.u.hGlobal);
 
-                var nFiles = PInvoke.DragQueryFile(hDrop, uint.MaxValue, null, 0);
-                for (uint i = 0; i < nFiles; i++)
+                try
                 {
-                    uint textLen;
-                    fixed (char* buffetPt = bufferArray)
+                    var nFiles = PInvoke.DragQueryFile(hDrop, uint.MaxValue, null, 0);
+                    for (uint i = 0; i < nFiles; i++)
                     {
-                        PWSTR buffer = new(buffetPt);
-                        textLen = PInvoke.DragQueryFile(hDrop, i, buffer, PInvoke.MAX_PATH);
+                        uint textLen;
+                        fixed (char* buffetPt = bufferArray)
+                        {
+                            PWSTR buffer = new(buffetPt);
+                            textLen = PInvoke.DragQueryFile(hDrop, i, buffer, PInvoke.MAX_PATH);
+                        }
+
+                        if (textLen == 0)
+                            continue;
+
+                        _srcArray.Add(new string(bufferArray, 0, (int)textLen));
                     }
 
-                    if (textLen == 0)
-                        continue;
 
-                    _srcArray.Add(new string(bufferArray, 0, (int)textLen));
+                    if (_srcArray.Count == 0 && _dstArray.Count == 0)
+                        Marshal.ThrowExceptionForHR(WinError.E_FAIL);
                 }
-
-
-                if (_srcArray.Count == 0 && _dstArray.Count == 0)
-                    Marshal.ThrowExceptionForHR(WinError.E_FAIL);
+                finally
+                {
+                    PInvoke.GlobalUnlock(stm.u.hGlobal);
+                }
             }
             finally
             {
