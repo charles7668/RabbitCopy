@@ -66,6 +66,18 @@ public class ContextMenuExt : IShellExtInit, IContextMenu
 
     public HRESULT QueryContextMenu(HMENU hMenu, uint indexMenu, uint idCmdFirst, uint idCmdLast, uint uFlags)
     {
+        try
+        {
+            return QueryContextMenuCore(hMenu, indexMenu, idCmdFirst, idCmdLast, uFlags);
+        }
+        catch (Exception ex)
+        {
+            return HandleComException(ex, WinError.MAKE_HRESULT(WinError.SEVERITY_SUCCESS, 0, 0));
+        }
+    }
+
+    private HRESULT QueryContextMenuCore(HMENU hMenu, uint indexMenu, uint idCmdFirst, uint idCmdLast, uint uFlags)
+    {
         var cmfFlag = uFlags;
         if (_srcArray.Count == 0 && _dstArray.Count == 0 && (cmfFlag & PInvoke.CMF_NORMAL) > 0)
             return WinError.MAKE_HRESULT(WinError.SEVERITY_SUCCESS, 0, 0);
@@ -129,6 +141,18 @@ public class ContextMenuExt : IShellExtInit, IContextMenu
     }
 
     public unsafe HRESULT InvokeCommand(CMINVOKECOMMANDINFO* pici)
+    {
+        try
+        {
+            return InvokeCommandCore(pici);
+        }
+        catch (Exception ex)
+        {
+            return HandleComException(ex, HRESULT.S_OK);
+        }
+    }
+
+    private unsafe HRESULT InvokeCommandCore(CMINVOKECOMMANDINFO* pici)
     {
         var ici = pici;
         if (ici == null)
@@ -221,6 +245,21 @@ public class ContextMenuExt : IShellExtInit, IContextMenu
     }
 
     public unsafe HRESULT Initialize(ITEMIDLIST* pidlFolder, IDataObject? pDataObj,
+        HKEY hkeyProgID)
+    {
+        try
+        {
+            return InitializeCore(pidlFolder, pDataObj, hkeyProgID);
+        }
+        catch (Exception ex)
+        {
+            _srcArray.Clear();
+            _dstArray.Clear();
+            return HandleComException(ex, (HRESULT)WinError.E_FAIL);
+        }
+    }
+
+    private unsafe HRESULT InitializeCore(ITEMIDLIST* pidlFolder, IDataObject? pDataObj,
         HKEY hkeyProgID)
     {
         var bufferArray = new char[PInvoke.MAX_PATH];
@@ -337,6 +376,12 @@ public class ContextMenuExt : IShellExtInit, IContextMenu
             return Marshal.GetHRForLastWin32Error();
 
         return 0;
+    }
+
+    private static HRESULT HandleComException(Exception exception, HRESULT fallback)
+    {
+        Debug.WriteLine(exception);
+        return fallback;
     }
 
     private sealed class BorrowedSafeHandle : SafeHandle
