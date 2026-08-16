@@ -78,7 +78,7 @@ public class ContextMenuExt : IShellExtInit, IContextMenu
         sep.cbSize = (uint)Marshal.SizeOf(sep);
         sep.fMask = MENU_ITEM_MASK.MIIM_TYPE;
         sep.fType = MENU_ITEM_TYPE.MFT_SEPARATOR;
-        var menuHandle = new GlobalFreeSafeHandle(hMenu);
+        using var menuHandle = new BorrowedSafeHandle(hMenu);
         if (!PInvoke.InsertMenuItem(menuHandle, menuItemCount++, true, sep))
             return (HRESULT)Marshal.GetHRForLastWin32Error();
         var subMenu = PInvoke.CreatePopupMenu();
@@ -332,11 +332,26 @@ public class ContextMenuExt : IShellExtInit, IContextMenu
         sub.fState = enabled ? MENU_ITEM_STATE.MFS_ENABLED : MENU_ITEM_STATE.MFS_DISABLED;
         sub.hbmpItem = bitmap;
 
-        var registerToHandle = new GlobalFreeSafeHandle(registerTo);
+        using var registerToHandle = new BorrowedSafeHandle(registerTo);
         if (!PInvoke.InsertMenuItem(registerToHandle, position, true, sub))
             return Marshal.GetHRForLastWin32Error();
 
         return 0;
+    }
+
+    private sealed class BorrowedSafeHandle : SafeHandle
+    {
+        public unsafe BorrowedSafeHandle(HMENU handle) : base(IntPtr.Zero, false)
+        {
+            SetHandle((IntPtr)handle.Value);
+        }
+
+        public override bool IsInvalid => handle == IntPtr.Zero;
+
+        protected override bool ReleaseHandle()
+        {
+            return true;
+        }
     }
 
     [ComUnregisterFunction]
