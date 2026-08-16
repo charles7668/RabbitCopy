@@ -331,8 +331,7 @@ public class ContextMenuExt : IShellExtInit, IContextMenu
         fixed (char* bufferPtr = bufferArray)
         {
             var buffer = new PWSTR(bufferPtr);
-            var res = PInvoke.SHGetPathFromIDList(pidlFolder, buffer);
-            if (pidlFolder != null && res == true)
+            if (pidlFolder != null && PInvoke.SHGetPathFromIDList(pidlFolder, buffer) == true)
                 _dstArray.Add(buffer.ToString());
             else if (_srcArray.Count == 1)
             {
