@@ -1,7 +1,8 @@
-﻿using System.Diagnostics;
+using System.Diagnostics;
 using System.IO;
 using System.Windows;
 using System.Windows.Controls.Primitives;
+using System.Windows.Threading;
 using CommunityToolkit.Mvvm.Messaging;
 using RabbitCopy.Models;
 using RabbitCopy.ViewModels;
@@ -22,7 +23,7 @@ public partial class MainWindow
         WeakReferenceMessenger.Default.Register<ShutdownRequestMessage>(
             this, (_, _) => Close());
         WeakReferenceMessenger.Default.Register<ScrollToEndRequestMessage>(
-            this, (_, _) => Dispatcher.BeginInvoke(() => { TxtLog.ScrollToEnd(); }));
+            this, (_, _) => ScrollLogToEnd());
         WeakReferenceMessenger.Default.Register<ElevateRequestMessage>(
             this, (_, _) => Dispatcher.BeginInvoke(() =>
             {
@@ -46,7 +47,7 @@ public partial class MainWindow
         WeakReferenceMessenger.Default.Register<ShutdownRequestMessage>(
             this, (_, _) => { });
         WeakReferenceMessenger.Default.Register<ScrollToEndRequestMessage>(
-            this, (_, _) => Dispatcher.BeginInvoke(() => { TxtLog.ScrollToEnd(); }));
+            this, (_, _) => ScrollLogToEnd());
         WeakReferenceMessenger.Default.Register<ElevateRequestMessage>(
             this, (_, _) => Dispatcher.BeginInvoke(() =>
             {
@@ -60,6 +61,33 @@ public partial class MainWindow
                 };
                 Process.Start(startInfo);
             }));
+    }
+
+    private int _scrollToEndPending;
+
+    /// <summary>
+    /// Queues a scroll of the log to its last line.
+    /// </summary>
+    /// <remarks>
+    /// RoboCopy reports its output from background threads, so the bound text reaches
+    /// <see cref="TxtLog"/> later, at <see cref="DispatcherPriority.DataBind"/>, and its new
+    /// extent later still, during the render pass. Scrolling at the default (Normal) priority
+    /// runs before both and only scrolls to the previous end, which looks like no scrolling at
+    /// all. Background priority runs after both. The flag coalesces the burst of per-line
+    /// requests into a single pending scroll.
+    /// </remarks>
+    private void ScrollLogToEnd()
+    {
+        if (Interlocked.Exchange(ref _scrollToEndPending, 1) == 1)
+            return;
+
+        Dispatcher.BeginInvoke(DispatcherPriority.Background, new Action(() =>
+        {
+            Interlocked.Exchange(ref _scrollToEndPending, 0);
+            // Several lines can share one dispatch, so make sure the extent is up to date.
+            TxtLog.UpdateLayout();
+            TxtLog.ScrollToEnd();
+        }));
     }
 
     private void DstHistoryButton_OnClick(object sender, RoutedEventArgs e)
