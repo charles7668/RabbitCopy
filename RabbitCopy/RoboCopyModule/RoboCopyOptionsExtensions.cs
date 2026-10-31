@@ -72,7 +72,7 @@ public static class RoboCopyOptionsExtensions
             args.Add($"/a-:{FileAttributesArgs(options.RemoveFileAttributes)}");
         if (options.CreateOnly)
             args.Add("/create");
-        if (options.ThreadNum != 8)
+        if (options.ThreadNum > 0)
             args.Add($"/mt:{options.ThreadNum}");
         args.Add(GetThrottlingArgs(options));
         if (options.FileAttributesFilter != FileAttributes.None)
