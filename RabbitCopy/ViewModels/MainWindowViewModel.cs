@@ -823,28 +823,32 @@ public partial class MainWindowViewModel : ObservableObject
         switch (state)
         {
             case State.IDLE:
-                UpdateIcon(IconResource.rabbit_32x32);
+                UpdateIcon(IconResource.rabbit_32x32, null, null);
                 _taskbarControlService.SetTaskbarProgress(_window, TBPFLAG.TBPF_NOPROGRESS);
                 break;
             case State.RUNNING:
-                UpdateIcon(IconResource.rabbit_yellow_32x32);
+                UpdateIcon(IconResource.rabbit_yellow_32x32, IconResource.rabbit_yellow_16x16, "Copying");
                 _taskbarControlService.SetTaskbarProgress(_window, TBPFLAG.TBPF_INDETERMINATE);
                 break;
             case State.SUCCESS:
-                UpdateIcon(IconResource.rabbit_green_32x32);
+                UpdateIcon(IconResource.rabbit_green_32x32, IconResource.rabbit_green_16x16, "Completed");
                 _taskbarControlService.SetTaskbarProgress(_window, TBPFLAG.TBPF_NOPROGRESS);
                 break;
             case State.ERROR:
-                UpdateIcon(IconResource.rabbit_red_32x32);
+                UpdateIcon(IconResource.rabbit_red_32x32, IconResource.rabbit_red_16x16, "Error");
                 _taskbarControlService.SetTaskbarProgress(_window, TBPFLAG.TBPF_ERROR);
                 break;
             default:
                 throw new ArgumentOutOfRangeException(nameof(state), state, null);
         }
 
-        void UpdateIcon(byte[] imageData)
+        // The window icon is bound to WindowIcon in XAML, so WPF applies it through
+        // WM_SETICON (title bar and Alt+Tab). A pinned Windows 11 taskbar button ignores
+        // that and only shows the overlay icon.
+        void UpdateIcon(byte[] largeImage, byte[]? overlayImage, string? overlayDescription)
         {
-            _taskbarControlService.UpdateTaskbarIcon(_window!, imageData);
+            WindowIcon = ImageHelper.ByteArrayToBitmapImage(largeImage);
+            _taskbarControlService.SetTaskbarOverlayIcon(_window!, overlayImage, overlayDescription);
         }
     }
 

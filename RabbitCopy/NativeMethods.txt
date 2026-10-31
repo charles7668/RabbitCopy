@@ -42,6 +42,7 @@ GetWindowRect
 ScreenToClient
 MoveWindow
 SendMessage
+DestroyIcon
 
 // COM interface
 IFileDialog
